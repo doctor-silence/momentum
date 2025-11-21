@@ -1,97 +1,87 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+
+// Import all pages
 import Layout from "./Layout.jsx";
-
 import Dashboard from "./Dashboard";
-
 import Generate from "./Generate";
-
 import Profile from "./Profile";
-
 import Pricing from "./Pricing";
-
 import PaymentSuccess from "./PaymentSuccess";
-
 import Calendar from "./Calendar";
-
 import Library from "./Library";
-
 import Analytics from "./Analytics";
-
 import Landing from "./Landing";
-
 import Agents from "./Agents";
+import Login from "./Login.jsx";
+import Register from "./Register.jsx";
+import AuthCallback from "./AuthCallback.jsx";
 
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+// --- Auth Helper & Protected Route ---
+const isAuthenticated = () => !!localStorage.getItem('authToken');
 
+const ProtectedRoute = ({ children }) => {
+  let location = useLocation();
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return children;
+};
+
+// --- Page Name Logic ---
 const PAGES = {
-    
-    Dashboard: Dashboard,
-    
-    Generate: Generate,
-    
-    Profile: Profile,
-    
-    Pricing: Pricing,
-    
-    PaymentSuccess: PaymentSuccess,
-    
-    Calendar: Calendar,
-    
-    Library: Library,
-    
-    Analytics: Analytics,
-    
-    Landing: Landing,
-    
-    Agents: Agents,
-    
-}
+    Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback
+};
 
 function _getCurrentPage(url) {
-    if (url === '/' || url.toLowerCase() === '/landing') {
-        return 'Landing'; // Explicitly return 'Landing' for root and /landing paths
-    }
-    if (url.endsWith('/')) {
-        url = url.slice(0, -1);
-    }
-    let urlLastPart = url.split('/').pop();
-    if (urlLastPart.includes('?')) {
-        urlLastPart = urlLastPart.split('?')[0];
-    }
-
+    if (url === '/' || url.toLowerCase() === '/landing') return 'Landing';
+    if (url.toLowerCase() === '/login') return 'Login';
+    if (url.toLowerCase() === '/register') return 'Register';
+    if (url.toLowerCase().startsWith('/auth')) return 'AuthCallback';
+    
+    if (url.endsWith('/')) url = url.slice(0, -1);
+    let urlLastPart = url.split('/').pop().split('?')[0];
     const pageName = Object.keys(PAGES).find(page => page.toLowerCase() === urlLastPart.toLowerCase());
-    return pageName || 'Dashboard'; // Fallback to Dashboard if no specific page is found
+    return pageName || 'Dashboard';
 }
 
-function PagesContent() {
+// This component determines the current page and wraps the Routes with the Layout
+function AppWithLayout() {
     const location = useLocation();
-    const currentPage = _getCurrentPage(location.pathname);
-    
+    const currentPageName = _getCurrentPage(location.pathname);
+
     return (
-        <Layout currentPageName={currentPage}>
+        <Layout currentPageName={currentPageName}>
             <Routes>
-                {/* Default route is now Landing */}
+                {/* Public Routes */}
                 <Route path="/" element={<Landing />} />
-                
-                {/* Other routes */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/generate" element={<Generate />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/auth/success" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
-                <Route path="/paymentsuccess" element={<PaymentSuccess />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/landing" element={<Landing />} />
-                <Route path="/agents" element={<Agents />} />
+                
+                {/* Protected Routes */}
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/paymentsuccess" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
+
+                {/* Fallback for any other path */}
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Layout>
     );
 }
 
+// The root component that provides the Router context
 export default function Pages() {
     return (
         <Router>
-            <PagesContent />
+            <AppWithLayout />
         </Router>
     );
 }

@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  googleId: {
+    type: String,
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -12,7 +15,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    // Password is not required if signing up with Google
+    required: function() { return !this.googleId; },
     minlength: 8,
   },
   firstName: {
