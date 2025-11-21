@@ -1,0 +1,177 @@
+import React, { useEffect, useState } from "react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, parseISO } from "date-fns";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useToast } from "@/components/ui/use-toast";
+
+export default function Calendar() {
+  const [items, setItems] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    setIsLoading(true);
+    const all = await base44.entities.Content.list("-updated_date", 500);
+    setItems(all);
+    setIsLoading(false);
+  };
+
+  const scheduleItem = async (item, date) => {
+    if (!date) return;
+    await base44.entities.Content.update(item.id, {
+      scheduled_date: date.toISOString(),
+      status: "scheduled"
+    });
+    toast({ title: "Запланировано", description: `"${item.title}" запланирован на ${date.toLocaleDateString()}.` });
+    await loadContent();
+  };
+
+  const renderHeader = () => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Button aria-label="Previous month" variant="outline" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <h2 className="text-xl font-semibold text-white">{format(currentMonth, "MMMM yyyy")}</h2>
+        <Button aria-label="Next month" variant="outline" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+      <Link to={createPageUrl("Generate")}>
+        <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+          <Plus className="w-4 h-4 mr-2" /> Создать контент
+        </Button>
+      </Link>
+    </div>
+  );
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const rows = [];
+  let day = calendarStart;
+
+  while (day <= calendarEnd) {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const cloneDay = day;
+      const dayItems = items.filter((it) => {
+        if (!it.scheduled_date) return false;
+        const d = typeof it.scheduled_date === "string" ? parseISO(it.scheduled_date) : new Date(it.scheduled_date);
+        return isSameDay(d, cloneDay);
+      });
+
+      days.push(
+        <div
+          key={cloneDay.toISOString()}
+          className={`p-2 rounded-lg border h-36 overflow-auto ${
+            isSameMonth(cloneDay, monthStart) ? "bg-white/5 border-white/10" : "bg-transparent border-white/5 opacity-60"
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-white/80">{format(cloneDay, "d")}</span>
+          </div>
+          <div className="space-y-1">
+            {dayItems.map((it) => (
+              <div key={it.id} className="text-xs p-2 rounded-md bg-white/10 border border-white/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-medium line-clamp-1">{it.title}</span>
+                  <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/30 ml-2">{it.platform}</Badge>
+                </div>
+                <div className="text-white/60">{it.content_type}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+      day = addDays(day, 1);
+    }
+    rows.push(
+      <div key={day.toISOString()} className="grid grid-cols-7 gap-2">
+        {days}
+      </div>
+    );
+  }
+
+  const drafts = items.filter((i) => i.status === "draft");
+
+  return (
+    <div className="min-h-screen p-4 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {renderHeader()}
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 bg-white/10 backdrop-blur-xl border-white/20">
+            <CardHeader>
+              <CardTitle className="text-white">Календарь контента</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-7 gap-2 text-xs text-white/70 mb-1">
+                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
+                  <div key={d} className="text-center">{d}</div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                {rows}
+              </div>
+              {isLoading && <div className="text-white/70 text-sm mt-2">Loading...</div>}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-400" /> Незапланированные черновики
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {drafts.length === 0 ? (
+                <div className="text-white/70 text-sm">
+                  Черновиков пока нет. Создайте контент и запланируйте его здесь.
+                </div>
+              ) : drafts.map((d) => (
+                <div key={d.id} className="p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-white font-medium line-clamp-1">{d.title}</div>
+                      <div className="text-white/60 text-xs">{d.platform} • {d.content_type}</div>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" aria-label={`Запланировать ${d.title}`}>
+                          <CalendarIcon className="w-4 h-4 mr-2" />
+                          Запланировать
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 w-auto bg-white/90 rounded-lg z-50">
+                        <CalendarPicker
+                          mode="single"
+                          selected={d.scheduled_date ? parseISO(d.scheduled_date) : undefined}
+                          onSelect={(date) => scheduleItem(d, date)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

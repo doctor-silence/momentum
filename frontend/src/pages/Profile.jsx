@@ -1,0 +1,550 @@
+import React, { useState, useEffect } from "react";
+import { UserProfile } from "@/api/entities";
+import { User } from "@/api/entities";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { 
+  User as UserIcon, 
+  Sparkles, 
+  Target, 
+  MessageSquare,
+  Save,
+  Plus,
+  X,
+  Crown
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useToast } from "@/components/ui/use-toast";
+
+const industries = [
+  { value: "business_coaching", label: "Бизнес-коучинг" },
+  { value: "life_coaching", label: "Лайф-коучинг" },
+  { value: "fitness_coaching", label: "Фитнес-коучинг" },
+  { value: "career_coaching", label: "Карьерный коучинг" },
+  { value: "relationship_coaching", label: "Коучинг отношений" },
+  { value: "financial_coaching", label: "Финансовый коучинг" },
+  { value: "marketing_consulting", label: "Маркетинговый консалтинг" },
+  { value: "leadership_coaching", label: "Коучинг лидерства" },
+  { value: "mindset_coaching", label: "Коучинг мышления" },
+  { value: "other", label: "Другое" }
+];
+
+const toneOptions = [
+  { value: "professional", label: "Профессиональный" },
+  { value: "conversational", label: "Разговорный" },
+  { value: "inspiring", label: "Вдохновляющий" },
+  { value: "authoritative", label: "Авторитетный" },
+  { value: "friendly", label: "Дружелюбный" },
+  { value: "bold", label: "Смелый" }
+];
+
+const goalOptions = [
+  { value: "brand_awareness", label: "Узнаваемость бренда" },
+  { value: "lead_generation", label: "Генерация лидов" },
+  { value: "thought_leadership", label: "Экспертность" },
+  { value: "community_building", label: "Построение сообщества" },
+  { value: "sales_conversion", label: "Продажи" }
+];
+
+export default function Profile() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState({
+    core_message: "",
+    industry: "",
+    target_audiences: [],
+    brand_voice: {
+      tone: "professional",
+      personality_traits: [],
+      writing_style: ""
+    },
+    preferred_platforms: [],
+    content_pillars: [],
+    goals: {
+      primary_goal: "",
+      monthly_content_target: 12,
+      growth_targets: {}
+    },
+    onboarding_completed: false,
+    subscription_tier: "starter"
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [newAudience, setNewAudience] = useState({ name: "", description: "", demographics: "" });
+  const [newPillar, setNewPillar] = useState("");
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const currentUser = await User.me();
+      setUser(currentUser);
+
+      const profiles = await UserProfile.filter({ created_by: currentUser.email });
+      if (profiles.length > 0) {
+        setUserProfile(profiles[0]);
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!userProfile.core_message || userProfile.core_message.trim().length < 10) {
+      e.core_message = "Please enter your core message (at least 10 characters).";
+    }
+    const m = Number(userProfile.goals?.monthly_content_target ?? 0);
+    if (Number.isNaN(m) || m < 0) {
+      e.monthly_content_target = "Monthly content target must be 0 or more.";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) {
+      toast({ title: "Исправьте обязательные поля", description: "Пожалуйста, исправьте выделенные поля.", variant: "destructive" });
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const profileData = {
+        ...userProfile,
+        goals: {
+          ...userProfile.goals,
+          monthly_content_target: Number(userProfile.goals?.monthly_content_target || 0)
+        },
+        onboarding_completed: true
+      };
+      
+      // Save the profile data to localStorage to be used by other pages.
+      console.log("Saving to localStorage:", profileData);
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+
+      // The backend API calls are mocked, so we just simulate success.
+      // if (userProfile.id) {
+      //   await UserProfile.update(userProfile.id, profileData);
+      // } else {
+      //   await UserProfile.create(profileData);
+      // }
+
+      toast({ title: "Профиль сохранен", description: "Ваши настройки обновлены." });
+      navigate(createPageUrl("Dashboard"));
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({ title: "Ошибка сохранения", description: "Пожалуйста, попробуйте еще раз.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const addAudience = () => {
+    if (newAudience.name) {
+      setUserProfile(prev => ({
+        ...prev,
+        target_audiences: [...prev.target_audiences, newAudience]
+      }));
+      setNewAudience({ name: "", description: "", demographics: "" });
+    }
+  };
+
+  const removeAudience = (index) => {
+    setUserProfile(prev => ({
+      ...prev,
+      target_audiences: prev.target_audiences.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addPillar = () => {
+    if (newPillar) {
+      setUserProfile(prev => ({
+        ...prev,
+        content_pillars: [...prev.content_pillars, newPillar]
+      }));
+      setNewPillar("");
+    }
+  };
+
+  const removePillar = (index) => {
+    setUserProfile(prev => ({
+      ...prev,
+      content_pillars: prev.content_pillars.filter((_, i) => i !== index)
+    }));
+  };
+
+  const togglePlatform = (platform) => {
+    setUserProfile(prev => ({
+      ...prev,
+      preferred_platforms: prev.preferred_platforms.includes(platform)
+        ? prev.preferred_platforms.filter(p => p !== platform)
+        : [...prev.preferred_platforms, platform]
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-amber-500/30 border-t-amber-500 animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Загружаем ваш профиль...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-4 lg:p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-4"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center relative">
+              <UserIcon className="w-7 h-7 text-white" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                <Crown className="w-2.5 h-2.5 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold text-white">Настройка профиля</h1>
+          </div>
+          <p className="text-white/70 text-lg max-w-2xl mx-auto">
+            Помогите нам понять ваше уникальное сообщение и цели, чтобы мы могли создавать контент, который действительно усиливает ваше влияние
+          </p>
+        </motion.div>
+
+        <div className="space-y-8">
+          {/* Core Message */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                  Ваше ключевое сообщение
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-white font-medium mb-2 block">
+                    Какая одна трансформационная идея движет всем, что вы делаете?
+                  </label>
+                  <Textarea
+                    placeholder="Например: 'Я верю, что каждый предприниматель обладает силой создать бизнес своей мечты, если у него правильный настрой и системы...'"
+                    value={userProfile.core_message}
+                    onChange={(e) => setUserProfile(prev => ({ ...prev, core_message: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm resize-none h-24"
+                  />
+                  {errors.core_message && <p className="text-red-300 text-sm mt-1">{errors.core_message}</p>}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white font-medium mb-2 block">Отрасль</label>
+                    <Select 
+                      value={userProfile.industry} 
+                      onValueChange={(value) => setUserProfile(prev => ({ ...prev, industry: value }))}
+                    >
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white data-[placeholder]:text-white/60 backdrop-blur-sm">
+                        <SelectValue placeholder="Выберите вашу отрасль" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
+                        {industries.map((industry) => (
+                          <SelectItem 
+                            key={industry.value} 
+                            value={industry.value}
+                            className="text-white hover:bg-white/10 focus:bg-white/10"
+                          >
+                            {industry.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-white font-medium mb-2 block">Основная цель</label>
+                                        <Select 
+                                          value={userProfile.goals.primary_goal} 
+                                          onValueChange={(value) => setUserProfile(prev => ({
+                                            ...prev, 
+                                            goals: { ...prev.goals, primary_goal: value }
+                                          }))}
+                                        >
+                                          <SelectTrigger className="bg-white/10 border-white/20 text-white data-[placeholder]:text-white/60 backdrop-blur-sm">
+                                            <SelectValue placeholder="Выберите основную цель" />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
+                                            {goalOptions.map((goal) => (
+                                              <SelectItem 
+                                                key={goal.value} 
+                                                value={goal.value}
+                                                className="text-white hover:bg-white/10 focus:bg-white/10"
+                                              >
+                                                {goal.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Brand Voice */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-purple-400" />
+                  Голос и тон бренда
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white font-medium mb-2 block">Тон</label>
+                    <Select 
+                      value={userProfile.brand_voice.tone} 
+                      onValueChange={(value) => setUserProfile(prev => ({ 
+                        ...prev, 
+                        brand_voice: { ...prev.brand_voice, tone: value }
+                      }))}
+                    >
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white data-[placeholder]:text-white/60 backdrop-blur-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
+                        {toneOptions.map((tone) => (
+                          <SelectItem 
+                            key={tone.value} 
+                            value={tone.value}
+                            className="text-white hover:bg-white/10 focus:bg-white/10"
+                          >
+                            {tone.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-white font-medium mb-2 block">Месячная цель по контенту</label>
+                    <Input
+                      type="number"
+                      value={userProfile.goals.monthly_content_target}
+                      onChange={(e) => setUserProfile(prev => ({ 
+                        ...prev, 
+                        goals: { ...prev.goals, monthly_content_target: parseInt(e.target.value) || 0 }
+                      }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
+                    />
+                    {errors.monthly_content_target && <p className="text-red-300 text-sm mt-1">{errors.monthly_content_target}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-white font-medium mb-2 block">Описание стиля письма</label>
+                  <Textarea
+                    placeholder="Опишите ваш уникальный стиль письма и индивидуальность..."
+                    value={userProfile.brand_voice.writing_style}
+                    onChange={(e) => setUserProfile(prev => ({ 
+                      ...prev, 
+                      brand_voice: { ...prev.brand_voice, writing_style: e.target.value }
+                    }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm resize-none h-20"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Target Audiences */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Target className="w-5 h-5 text-emerald-400" />
+                  Целевые аудитории
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-3">
+                  <Input
+                    placeholder="Название аудитории"
+                    value={newAudience.name}
+                    onChange={(e) => setNewAudience(prev => ({ ...prev, name: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
+                  />
+                  <Input
+                    placeholder="Описание"
+                    value={newAudience.description}
+                    onChange={(e) => setNewAudience(prev => ({ ...prev, description: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Демография"
+                      value={newAudience.demographics}
+                      onChange={(e) => setNewAudience(prev => ({ ...prev, demographics: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
+                    />
+                    <Button 
+                      onClick={addAudience}
+                      className="bg-emerald-500/30 hover:bg-emerald-500/50 text-emerald-200 border border-emerald-400/30 backdrop-blur-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {userProfile.target_audiences.map((audience, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div>
+                        <p className="text-white font-medium">{audience.name}</p>
+                        <p className="text-white/70 text-sm">{audience.description}</p>
+                        {audience.demographics && (
+                          <p className="text-white/50 text-xs">{audience.demographics}</p>
+                        )}
+                      </div>
+                      <Button 
+                        onClick={() => removeAudience(index)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Content Pillars & Platforms */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid md:grid-cols-2 gap-6"
+          >
+            {/* Content Pillars */}
+            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-white">Контентные столпы</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Добавить контентный столп"
+                    value={newPillar}
+                    onChange={(e) => setNewPillar(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
+                    onKeyPress={(e) => e.key === 'Enter' && addPillar()}
+                  />
+                  <Button 
+                    onClick={addPillar}
+                    className="bg-purple-500/30 hover:bg-purple-500/50 text-purple-200 border border-purple-400/30 backdrop-blur-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {userProfile.content_pillars.map((pillar, index) => (
+                    <Badge 
+                      key={index}
+                      className="bg-purple-500/30 text-purple-200 border-purple-400/30 flex items-center gap-1 cursor-pointer hover:bg-purple-500/50 transition-colors"
+                      onClick={() => removePillar(index)}
+                    >
+                      {pillar}
+                      <X className="w-3 h-3 ml-1" />
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Preferred Platforms */}
+            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-white">Предпочитаемые платформы</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {["linkedin", "instagram", "tiktok", "twitter", "telegram", "vk"].map((platform) => (
+                    <div 
+                      key={platform}
+                      onClick={() => togglePlatform(platform)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all duration-300 ${
+                        userProfile.preferred_platforms.includes(platform)
+                          ? 'bg-blue-500/30 border-blue-400/30 text-blue-200'
+                          : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <p className="font-medium text-center capitalize">{platform}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Save Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-center"
+          >
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || !userProfile.core_message}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-12 py-4 rounded-xl text-lg transition-all duration-300 hover:scale-105 shadow-2xl"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3" />
+                  Сохранение профиля...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5 mr-3" />
+                  Завершить настройку и продолжить
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
