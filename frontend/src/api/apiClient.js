@@ -21,14 +21,25 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('authToken');
-      // TODO: Перенаправить пользователя на страницу логина
-      // window.location.href = '/login'; // Or use react-router-dom's navigate
-      console.warn('Unauthorized request, user logged out.');
+    // Safely extract the error message
+    let errorMessage = "Произошла сетевая ошибка.";
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      errorMessage = error.response.data?.message || `Ошибка: ${error.response.status}`;
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = "Сервер не отвечает. Проверьте ваше интернет-соединение.";
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      errorMessage = error.message;
     }
-    console.error("API Error:", error.response?.data?.message || error.message);
-    return Promise.reject(error);
+    
+    console.error("API Error:", errorMessage, error);
+
+    // To prevent crashing, we create a new Error object with a clear message.
+    // The component's catch block will receive this.
+    return Promise.reject(new Error(errorMessage));
   }
 );
 

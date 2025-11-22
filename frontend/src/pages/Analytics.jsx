@@ -1,114 +1,78 @@
-import React, { useEffect, useMemo, useState, Suspense } from "react";
-
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3 } from "lucide-react";
-import { format } from "date-fns";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// Lazy-load analytics charts component
-const AnalyticsCharts = React.lazy(() => import("../components/analytics/Charts"));
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart3 } from "lucide-react";
+import { getUserContentApi } from "@/api/content";
 
 export default function Analytics() {
-  const [items, setItems] = useState([]);
+  const [content, setContent] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    load();
+    const fetchContent = async () => {
+      try {
+        setIsLoading(true);
+        const userContent = await getUserContentApi();
+        setContent(userContent);
+      } catch (error) {
+        console.error("Failed to fetch analytics content:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContent();
   }, []);
 
-  const load = async () => {
-    setIsLoading(true);
-    const all = await base44.entities.Content.list("-created_date", 500);
-    setItems(all);
-    setIsLoading(false);
-  };
+  // Simple data transformation for charts
+  const platformCounts = content.reduce((acc, item) => {
+    acc[item.platform] = (acc[item.platform] || 0) + 1;
+    return acc;
+  }, {});
 
-  const stats = useMemo(() => {
-    const total = items.length;
-    const byStatus = items.reduce((acc, i) => ({ ...acc, [i.status]: (acc[i.status] || 0) + 1 }), {});
-    const byPlatform = items.reduce((acc, i) => ({ ...acc, [i.platform]: (acc[i.platform] || 0) + 1 }), {});
-    return { total, byStatus, byPlatform };
-  }, [items]);
-
-  const platformData = useMemo(() => {
-    return Object.entries(stats.byPlatform).map(([name, value]) => ({ name, value }));
-  }, [stats]);
-
-  const statusData = useMemo(() => {
-    return Object.entries(stats.byStatus).map(([name, value]) => ({ name, value }));
-  }, [stats]);
-
-  const timeSeries = useMemo(() => {
-    const m = new Map();
-    items.forEach((i) => {
-      const key = format(new Date(i.created_date), "MMM dd");
-      m.set(key, (m.get(key) || 0) + 1);
-    });
-    return Array.from(m.entries()).map(([date, count]) => ({ date, count })).slice(-14);
-  }, [items]);
+  const chartData = Object.keys(platformCounts).map(platform => ({
+    name: platform,
+    count: platformCounts[platform],
+  }));
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-white">Аналитика</h1>
-          {isLoading && <span className="text-white/70 text-sm">Загрузка...</span>}
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">Всего контента</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-white">{stats.total}</div>
-              <p className="text-white/60 text-sm mt-2">За всё время</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">По статусу</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {statusData.map((s) => (
-                <Badge key={s.name} variant="outline" className="bg-white/10 border-white/20 text-white">
-                  {s.name}: {s.value}
-                </Badge>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">По платформе</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {platformData.map((p) => (
-                <Badge key={p.name} variant="outline" className="bg-white/10 border-white/20 text-white">
-                  {p.name}: {p.value}
-                </Badge>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Suspense fallback={
-          <div className="grid gap-6">
-            <div className="bg-white/10 backdrop-blur-xl border-white/20 rounded-xl p-6">
-              <Skeleton className="h-6 w-64 bg-white/20 mb-4" />
-              <Skeleton className="h-80 w-full bg-white/10" />
-            </div>
-            <div className="bg-white/10 backdrop-blur-xl border-white/20 rounded-xl p-6">
-              <Skeleton className="h-6 w-64 bg-white/20 mb-4" />
-              <Skeleton className="h-80 w-full bg-white/10" />
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-green-500 to-cyan-500 flex items-center justify-center">
+            <BarChart3 className="w-7 h-7 text-white" />
           </div>
-        }>
-          <AnalyticsCharts timeSeries={timeSeries} platformData={platformData} />
-        </Suspense>
+          <h1 className="text-4xl lg:text-5xl font-bold text-white">Аналитика</h1>
+        </div>
+
+        <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white">Контент по платформам</CardTitle>
+          </CardHeader>
+          <CardContent style={{ height: '400px' }}>
+            {isLoading ? (
+              <p className="text-white/70">Загрузка данных...</p>
+            ) : chartData.length === 0 ? (
+              <p className="text-white/70">Нет данных для анализа.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                  <XAxis dataKey="name" stroke="rgba(255, 255, 255, 0.7)" />
+                  <YAxis stroke="rgba(255, 255, 255, 0.7)" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white'
+                    }}
+                  />
+                  <Bar dataKey="count" fill="rgba(16, 185, 129, 0.7)" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

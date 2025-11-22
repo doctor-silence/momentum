@@ -121,7 +121,65 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
 });
 
 
+const chatWithAgent = asyncHandler(async (req, res) => {
+  const { prompt, history = [], agentName } = req.body;
+
+  if (!prompt) {
+    res.status(400);
+    throw new Error('Please provide a prompt');
+  }
+
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey || apiKey === 'your_deepseek_api_key_here') {
+    res.status(500);
+    throw new Error('DeepSeek API key is not configured on the server.');
+  }
+
+  // A simple system prompt based on the agent name
+  const systemPrompts = {
+    content_strategist: 'You are an expert content strategist. Format your responses using Markdown for paragraphs, headings, bold text, and lists.',
+    default: 'You are a helpful assistant.'
+  };
+
+  const systemMessage = {
+    role: 'system',
+    content: systemPrompts[agentName] || systemPrompts.default
+  };
+
+  // Combine history with the new user message
+  const messages = [systemMessage, ...history, { role: 'user', content: prompt }];
+  
+  console.log('Sending messages to DeepSeek:', messages);
+
+  try {
+    const response = await axios.post(
+      'https://api.deepseek.com/chat/completions',
+      {
+        model: 'deepseek-chat',
+        messages: messages,
+        max_tokens: 2048,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      }
+    );
+
+    const aiResponse = response.data.choices[0].message.content;
+    res.json({ response: aiResponse });
+
+  } catch (error) {
+    console.error('Error calling DeepSeek API for chat:', error.response ? error.response.data : error.message);
+    res.status(error.response ? error.response.status : 500);
+    throw new Error('Failed to get chat response from AI service.');
+  }
+});
+
 module.exports = {
   generateContent,
   generateContentIdeas,
+  chatWithAgent,
 };

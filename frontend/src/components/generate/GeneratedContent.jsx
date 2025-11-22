@@ -19,7 +19,8 @@ export default function GeneratedContent({
   onSave, 
   onCopy, 
   onRegenerate,
-  isLoading 
+  isLoading,
+  isSaving // Add isSaving prop
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content.body);
@@ -138,10 +139,20 @@ export default function GeneratedContent({
           <div className="flex flex-wrap gap-3 pt-4">
             <Button
               onClick={handleSave}
+              disabled={isSaving} // Disable when saving
               className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105"
             >
-              <Save className="w-4 h-4 mr-2" />
-              Сохранить и запланировать
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Сохранение...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Сохранить и запланировать
+                </>
+              )}
             </Button>
 
             <Button
