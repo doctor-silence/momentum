@@ -1,5 +1,8 @@
-const express = require('express');
 const dotenv = require('dotenv');
+// Load environment variables FIRST
+dotenv.config();
+
+const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const session = require('express-session');
@@ -12,9 +15,6 @@ const { scheduleOverdueCheck } = require('./jobs/invoiceJobs');
 // --- Initializations ---
 // Passport config
 require('./config/passport')(passport);
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();

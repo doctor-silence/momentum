@@ -102,6 +102,23 @@ export default function Layout({ children, currentPageName }) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
         <div aria-hidden="true" className="decorative-overlay gradient-mask fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 pointer-events-none" />
+        
+        {/* Hard overrides + portal z-index safety */}
+        <style>{`
+          [data-sidebar="sidebar"] {
+            background: linear-gradient(to bottom, rgba(2,6,23,0.98), rgba(15,23,42,0.96)) !important;
+            color: rgba(255,255,255,0.95) !important;
+            border-right: 1px solid rgba(255,255,255,0.12) !important;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+          }
+          [data-sidebar="sidebar"] a,
+          [data-sidebar="sidebar"] [data-sidebar="menu-button"] { color: rgba(255,255,255,0.92) !important; }
+          [data-sidebar="sidebar"] .text-muted-foreground,
+          [data-sidebar="sidebar"] [class*="text-muted-foreground"] { color: rgba(255,255,255,0.7) !important; }
+          [data-sidebar="menu-button"]:hover { background-color: rgba(255,255,255,0.08) !important; }
+        `}</style>
+        
         <Sidebar className="border-r border-white/10 bg-gradient-to-b from-slate-950/90 via-slate-900/85 to-indigo-900/80 text-white" role="navigation" aria-label="Primary">
           <SidebarHeader className="border-b border-white/10 p-6">
             <div className="flex items-center gap-3">

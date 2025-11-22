@@ -8,31 +8,37 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Link, useNavigate } from 'react-router-dom';
 import apiClient from '@/api/apiClient'; // We'll need a proper auth api file later
+import { useState } from 'react';
 
 const formSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  email: z.string().email("Invalid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
+  firstName: z.string().min(2, "Имя должно содержать не менее 2 символов."),
+  lastName: z.string().min(2, "Фамилия должна содержать не менее 2 символов."),
+  email: z.string().email("Неверный формат email."),
+  password: z.string().min(8, "Пароль должен содержать не менее 8 символов."),
 });
 
 export default function Register() {
   const navigate = useNavigate();
+  const [formError, setFormError] = useState('');
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", email: "", password: "" },
   });
 
   const onSubmit = async (values) => {
+    setFormError(''); // Reset error on new submission
     try {
-      // We will create a proper auth API file later
       await apiClient.post('/auth/register', values);
-      // For simplicity, navigate to login after registration.
-      // A better UX would be to log them in directly.
+      // Redirect to login after successful registration
       navigate('/login');
     } catch (error) {
       console.error("Registration failed:", error);
-      // You would set an error state here to show the user
+      const message = error.response?.data?.message || 'Произошла неизвестная ошибка.';
+      if (message === 'User already exists') {
+        setFormError('Пользователь с таким email уже существует.');
+      } else {
+        setFormError(message);
+      }
     }
   };
   
@@ -53,6 +59,7 @@ export default function Register() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Form Fields ... */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -107,8 +114,13 @@ export default function Register() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
-                Зарегистрироваться
+              
+              {formError && (
+                <p className="text-sm font-medium text-red-400 text-center">{formError}</p>
+              )}
+
+              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
               </Button>
             </form>
           </Form>

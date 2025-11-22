@@ -8,20 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Link, useNavigate } from 'react-router-dom';
 import apiClient from '@/api/apiClient';
+import { useState } from 'react';
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email address."),
-  password: z.string().min(1, "Password is required."),
+  email: z.string().email("Неверный формат email."),
+  password: z.string().min(1, "Пароль обязателен."),
 });
 
 export default function Login() {
   const navigate = useNavigate();
+  const [formError, setFormError] = useState('');
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = async (values) => {
+    setFormError(''); // Reset error on new submission
     try {
       const { data } = await apiClient.post('/auth/login', values);
       localStorage.setItem('authToken', data.token); // Save the token
@@ -29,6 +32,7 @@ export default function Login() {
       navigate('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error("Login failed:", error);
+      setFormError(error.response?.data?.message || 'Произошла неизвестная ошибка.');
     }
   };
   
@@ -74,8 +78,13 @@ export default function Login() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
-                Войти
+
+              {formError && (
+                <p className="text-sm font-medium text-red-400 text-center">{formError}</p>
+              )}
+
+              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Вход...' : 'Войти'}
               </Button>
             </form>
           </Form>
