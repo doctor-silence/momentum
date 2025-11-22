@@ -119,7 +119,7 @@ export default function Layout({ children, currentPageName }) {
           [data-sidebar="menu-button"]:hover { background-color: rgba(255,255,255,0.08) !important; }
         `}</style>
         
-        <Sidebar className="border-r border-white/10 bg-gradient-to-b from-slate-950/90 via-slate-900/85 to-indigo-900/80 text-white" role="navigation" aria-label="Primary">
+        <Sidebar className="w-72 border-r border-white/10 bg-gradient-to-b from-slate-950/90 via-slate-900/85 to-indigo-900/80 text-white" role="navigation" aria-label="Primary">
           <SidebarHeader className="border-b border-white/10 p-6">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -182,8 +182,21 @@ export default function Layout({ children, currentPageName }) {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          </SidebarContent>
+</SidebarContent>
           <SidebarFooter className="border-t border-white/10 p-4">
+            <Link to={createPageUrl("Pricing")} className="block mb-3" aria-label="Upgrade to Pro plan">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-white" aria-hidden="true" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm truncate">Pro План</p>
+                    <p className="text-xs text-amber-200">Улучшить и получить больше</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
             <button onClick={() => { localStorage.removeItem('authToken'); navigate('/login'); }} className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition" aria-label="Выйти">
               Выйти
             </button>
