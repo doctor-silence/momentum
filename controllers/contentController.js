@@ -37,14 +37,47 @@ const createContent = asyncHandler(async (req, res) => {
 // @route   GET /api/content
 // @access  Private
 const getUserContent = asyncHandler(async (req, res) => {
+  const { search, platform, status } = req.query;
+  const whereClause = { createdBy: req.user.id };
+
+  if (search) {
+    whereClause.title = { [Op.iLike]: `%${search}%` };
+  }
+  if (platform) {
+    whereClause.platform = platform;
+  }
+  if (status) {
+    whereClause.status = status;
+  }
+
   const content = await Content.findAll({ 
-    where: { createdBy: req.user.id },
+    where: whereClause,
     order: [['createdAt', 'DESC']]
   });
   res.status(200).json(content);
 });
 
+const updateContent = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const content = await Content.findByPk(id);
+
+  if (!content) {
+    res.status(404);
+    throw new Error('Content not found');
+  }
+
+  // Check if the user is the owner of the content
+  if (content.createdBy.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error('User not authorized to update this content');
+  }
+
+  const updatedContent = await content.update(req.body);
+  res.status(200).json(updatedContent);
+});
+
 module.exports = {
   createContent,
   getUserContent,
+  updateContent,
 };

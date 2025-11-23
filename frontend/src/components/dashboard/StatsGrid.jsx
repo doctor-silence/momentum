@@ -9,7 +9,23 @@ import {
   ArrowUpRight
 } from "lucide-react";
 
-export default function StatsGrid({ stats }) {
+export default function StatsGrid({ stats, isLoading }) {
+  if (isLoading || !stats) {
+    // Skeleton loader
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index} className="bg-white/5 backdrop-blur-xl border-white/10 h-[150px]">
+             <CardContent className="p-6 animate-pulse">
+                <div className="h-4 bg-slate-700 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-slate-700 rounded w-1/2"></div>
+             </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   const statCards = [
     {
       title: "Всего контента",

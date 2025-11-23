@@ -20,11 +20,22 @@ export const saveContentApi = async (contentData) => {
  * Fetches all content for the authenticated user.
  * @returns {Promise<Array>} An array of content objects.
  */
-export const getUserContentApi = async () => {
+export const updateContentApi = async (id, updateData) => {
   try {
-    const { data } = await apiClient.get('/content');
+    const { data } = await apiClient.put(`/content/${id}`, updateData);
     return data;
   } catch (error) {
-    throw error;
+    console.error("Error updating content:", error.response?.data?.message || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update content');
+  }
+};
+
+export const getUserContentApi = async (filters = {}) => {
+  try {
+    const { data } = await apiClient.get('/content', { params: filters });
+    return data;
+  } catch (error) {
+    console.error("Error fetching user content:", error.response?.data?.message || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to fetch content');
   }
 };

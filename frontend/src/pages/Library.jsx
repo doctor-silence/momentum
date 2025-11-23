@@ -1,73 +1,145 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Library as LibraryIcon } from "lucide-react";
-import { getUserContentApi } from "@/api/content"; // Import the API function
+import { Library as LibraryIcon, RefreshCw, Plus, Search, CalendarPlus } from "lucide-react";
+import { getUserContentApi, updateContentApi } from "@/api/content";
+import ContentViewModal from "../components/common/ContentViewModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useToast } from "@/components/ui/use-toast";
+
+
+const platforms = ["instagram", "linkedin", "telegram", "twitter", "tiktok", "vk"];
+const statuses = ["draft", "published", "scheduled", "archived"];
+
+const statusTranslations = {
+  draft: "Черновик",
+  published: "Опубликован",
+  scheduled: "Запланирован",
+  archived: "В архиве",
+};
 
 export default function Library() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [content, setContent] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [filters, setFilters] = useState({
+    search: "",
+    platform: "all",
+    status: "all",
+  });
+  const debouncedSearch = useDebounce(filters.search, 300);
+
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchContent = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const apiFilters = {
+        search: debouncedSearch,
+        platform: filters.platform === 'all' ? '' : filters.platform,
+        status: filters.status === 'all' ? '' : filters.status,
+      };
+      const userContent = await getUserContentApi(apiFilters);
+      setContent(userContent);
+    } catch (error) {
+      setError(error.message || "Не удалось загрузить контент.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearch, filters.platform, filters.status]);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const userContent = await getUserContentApi();
-        setContent(userContent);
-      } catch (error) {
-        setError(error.message || "Не удалось загрузить контент.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchContent();
-  }, []); // Runs once on component mount
+  }, [fetchContent]);
+
+  const handleSchedule = async (item) => {
+    try {
+      await updateContentApi(item.id, {
+        status: 'scheduled',
+        scheduled_date: new Date().toISOString(),
+      });
+      toast({ title: "Успешно запланировано!", description: `Пост "${item.title}" запланирован на сегодня.` });
+      navigate('/calendar');
+    } catch (error) {
+      toast({ variant: "destructive", title: "Ошибка", description: "Не удалось запланировать пост." });
+    }
+  };
+
+  const handleContentClick = (item) => {
+    setSelectedContent(item);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-            <LibraryIcon className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-bold text-white">Библиотека контента</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <LibraryIcon className="w-12 h-12 text-blue-400" />
+              <h1 className="text-4xl lg:text-5xl font-bold text-white">Библиотека контента</h1>
+            </div>
+            <div className="flex items-center gap-2">
+                <Button onClick={fetchContent} disabled={isLoading} variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    Обновить
+                </Button>
+                <Link to={createPageUrl("Generate")}><Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"><Plus className="w-4 h-4 mr-2" />Создать контент</Button></Link>
+            </div>
         </div>
 
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white">Ваш сохраненный контент</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isLoading && <p className="text-white/70 text-center">Загрузка...</p>}
-            {error && <p className="text-red-400 text-center">{error}</p>}
-            {!isLoading && !error && content.length === 0 && (
-              <p className="text-white/70 text-center">Вы еще не сохранили ни одного контента.</p>
-            )}
-            {!isLoading && !error && content.length > 0 && (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {content.map((item) => (
-                  <Card key={item.id} className="bg-white/5 border-white/10 text-white flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="line-clamp-2 text-base">{item.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <p className="text-sm text-white/70 line-clamp-4">{item.body}</p>
-                    </CardContent>
-                    <div className="p-4 mt-auto border-t border-white/10 flex flex-wrap gap-2">
-                        <Badge variant="outline" className="bg-white/10">{item.platform}</Badge>
-                        <Badge variant="outline" className="bg-white/10">{item.content_type}</Badge>
-                        <Badge variant="secondary">{item.status}</Badge>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+        <Card className="bg-white/10 backdrop-blur-xl border-white/20"><CardHeader><CardTitle className="text-white">Фильтры</CardTitle></CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4">
+            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/50" /><Input placeholder="Поиск контента..." value={filters.search} onChange={(e) => setFilters(f => ({...f, search: e.target.value}))} className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pl-10"/></div>
+            <Select value={filters.platform} onValueChange={(v) => setFilters(f => ({...f, platform: v}))}><SelectTrigger className="bg-white/10 border-white/20 text-white"><SelectValue placeholder="Все платформы" /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-white/20"><SelectItem value="all">Все платформы</SelectItem>{platforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={filters.status} onValueChange={(v) => setFilters(f => ({...f, status: v}))}><SelectTrigger className="bg-white/10 border-white/20 text-white"><SelectValue placeholder="Все статусы" /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-white/20"><SelectItem value="all">Все статусы</SelectItem>{statuses.map(s => <SelectItem key={s} value={s}>{statusTranslations[s] || s}</SelectItem>)}</SelectContent>
+            </Select>
           </CardContent>
         </Card>
+
+        <div className="space-y-4">
+          {isLoading && <p className="text-white/70 text-center">Загрузка...</p>}
+          {error && <p className="text-red-400 text-center">{error}</p>}
+          {!isLoading && !error && content.length === 0 && (<p className="text-white/70 text-center">Контент не найден.</p>)}
+          {!isLoading && !error && content.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {content.map((item) => (
+                <Card key={item.id} className="bg-white/5 border-white/10 text-white flex flex-col">
+                  <div className="p-4 cursor-pointer" onClick={() => handleContentClick(item)}>
+                    <CardTitle className="line-clamp-2 text-base mb-2">{item.title}</CardTitle>
+                    <p className="text-sm text-white/70 line-clamp-3 flex-grow">{item.body}</p>
+                  </div>
+                  <div className="p-4 mt-auto border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="bg-white/10">{item.platform}</Badge>
+                        <Badge variant="secondary">{statusTranslations[item.status] || item.status}</Badge>
+                      </div>
+                      {item.status === 'draft' && (
+                        <Button size="sm" onClick={() => handleSchedule(item)} className="bg-amber-500/80 hover:bg-amber-500/100 text-white">
+                          <CalendarPlus className="w-4 h-4 mr-2" />
+                          Запланировать
+                        </Button>
+                      )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      <ContentViewModal content={selectedContent} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
   );
 }

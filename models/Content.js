@@ -38,6 +38,10 @@ Content.init({
     type: DataTypes.STRING,
     defaultValue: 'draft',
   },
+  scheduled_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   // created_by will be an association
 }, {
   sequelize,

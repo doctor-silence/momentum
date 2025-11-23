@@ -92,7 +92,7 @@ export default function ContentViewModal({ content, open, onOpenChange }) {
 
           {/* Created Date */}
           <div className="text-white/50 text-sm">
-            Создано: {format(new Date(content.created_date), "d MMMM yyyy, HH:mm")}
+            Создано: {format(new Date(content.createdAt), "d MMMM yyyy, HH:mm")}
           </div>
         </div>
       </DialogContent>

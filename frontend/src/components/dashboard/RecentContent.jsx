@@ -111,7 +111,7 @@ export default function RecentContent({ content }) {
                   <div className="flex items-center gap-4 text-xs text-white/60">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {format(new Date(item.created_date), "MMM d, yyyy")}
+                      {format(new Date(item.createdAt), "MMM d, yyyy")}
                     </div>
                     {item.performance_data && (
                       <div className="flex items-center gap-3">
