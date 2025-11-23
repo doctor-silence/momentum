@@ -62,7 +62,26 @@ export default function Generate() {
   const generateContentIdeas = async () => {
     setIsLoadingIdeas(true);
     try {
-      const ideasPrompt = `...`; // Prompt for ideas
+      const ideasPrompt = `КРИТИЧЕСКИ ВАЖНО: ВСЕ ИДЕИ ДОЛЖНЫ БЫТЬ ТОЛЬКО НА РУССКОМ ЯЗЫКЕ!
+
+      Сгенерируй 5 СВЕЖИХ и НЕОБЫЧНЫХ идей контента для соцсетей на тему "${userProfile?.industry || 'успех в бизнесе и личная продуктивность'}".
+
+      Контентные столпы: ${userProfile?.content_pillars?.join(', ')}
+      
+      Постарайся, чтобы эти идеи отличались от предыдущих. Случайный фактор для разнообразия: ${Math.random()}.
+
+      Для каждой идеи предоставь НА РУССКОМ:
+      - Тему
+      - Уникальный угол
+      - Хук для привлечения внимания
+      - Ключевые пункты
+      - Призыв к действию
+      - Прогноз (low/medium/high)
+      - Трендовый фактор (0-100)
+
+      ВСЁ ДОЛЖНО БЫТЬ ТОЛЬКО НА РУССКОМ ЯЗЫКЕ!
+
+      ПОВТОРЯЮ: ВСЁ ДОЛЖНО БЫТЬ СТРОГО НА РУССКОМ ЯЗЫКЕ!`;
       const result = await generateIdeasFromAI(ideasPrompt);
       setContentIdeas(result.ideas || []);
     } catch (error) {
@@ -100,14 +119,24 @@ export default function Generate() {
         platform: generatedContent.platform,
         content_type: generatedContent.content_type,
         hashtags: generatedContent.hashtags,
-        status: "draft"
+        status: "draft",
+        // Spreading other potential fields from AI response
+        ...generatedContent 
       };
+
       await saveContentApi(contentToSave);
-      toast({ title: "Контент сохранен" });
+
+      toast({
+        title: "Успешно сохранено",
+        description: "Ваш контент добавлен в Библиотеку.",
+      });
       navigate('/library');
     } catch (error) {
-      console.error("Error saving content:", error);
-      toast({ variant: "destructive", title: "Ошибка сохранения", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Ошибка сохранения",
+        description: error.message || "Не удалось сохранить контент.",
+      });
     } finally {
       setIsSaving(false);
     }

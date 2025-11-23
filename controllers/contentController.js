@@ -1,18 +1,18 @@
 const asyncHandler = require('express-async-handler');
-const Content = require('../models/contentModel');
+const { Content, User } = require('../models');
 
 // @desc    Create new content
 // @route   POST /api/content
 // @access  Private
 const createContent = asyncHandler(async (req, res) => {
-  const { title, body, platform, content_type, hashtags, target_audience, generation_prompt, status } = req.body;
+  const { title, body, platform, content_type, hashtags, status } = req.body;
 
-  console.log("Creating content with body:", req.body);
-  console.log("Created by user ID:", req.user.id);
+  // We get the user ID from the 'protect' middleware
+  const createdBy = req.user.id;
 
-  if (!title || !body || !platform || !content_type) {
+  if (!title || !body || !platform || !content_type || !createdBy) {
     res.status(400);
-    throw new Error('Please enter all required fields for content');
+    throw new Error('Please provide all required fields (title, body, platform, content_type, createdBy)');
   }
 
   const content = await Content.create({
@@ -21,23 +21,28 @@ const createContent = asyncHandler(async (req, res) => {
     platform,
     content_type,
     hashtags,
-    target_audience,
-    generation_prompt,
     status,
-    created_by: req.user.id, // User from protect middleware
+    createdBy,
   });
 
-  res.status(201).json(content);
+  if (content) {
+    res.status(201).json(content);
+  } else {
+    res.status(400);
+    throw new Error('Invalid content data');
+  }
 });
 
-// @desc    Get user content
+// @desc    Get authenticated user's content
 // @route   GET /api/content
 // @access  Private
 const getUserContent = asyncHandler(async (req, res) => {
-  const content = await Content.find({ created_by: req.user.id }).sort({ createdAt: -1 });
+  const content = await Content.findAll({ 
+    where: { createdBy: req.user.id },
+    order: [['createdAt', 'DESC']]
+  });
   res.status(200).json(content);
 });
-
 
 module.exports = {
   createContent,

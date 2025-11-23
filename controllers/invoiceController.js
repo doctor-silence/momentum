@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const Invoice = require('../models/invoiceModel');
-const Product = require('../models/productModel');
+const { Invoice, Client, Product } = require('../models');
+const { Op } = require('sequelize');
 
 // @desc    Get all invoices
 // @route   GET /api/invoices
@@ -10,21 +10,20 @@ const getInvoices = asyncHandler(async (req, res) => {
   
   const query = {};
   if (status) query.status = status;
-  if (clientId) query.client = clientId;
+  if (clientId) query.clientId = clientId;
 
-  const invoices = await Invoice.find(query)
-    .populate('client', 'companyName contactName')
-    .sort({ [sortBy]: order === 'asc' ? 1 : -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    .exec();
-
-  const count = await Invoice.countDocuments(query);
+  const { count, rows } = await Invoice.findAndCountAll({
+    where: query,
+    order: [[sortBy, order.toUpperCase()]],
+    limit: parseInt(limit),
+    offset: (parseInt(page) - 1) * parseInt(limit),
+    include: [{ model: Client, attributes: ['companyName'] }],
+  });
 
   res.json({
-    invoices,
+    invoices: rows,
     totalPages: Math.ceil(count / limit),
-    currentPage: page,
+    currentPage: parseInt(page),
   });
 });
 
@@ -34,49 +33,27 @@ const getInvoices = asyncHandler(async (req, res) => {
 const createInvoice = asyncHandler(async (req, res) => {
     const { client, issueDate, dueDate, lineItems, notes, tax, status } = req.body;
 
-    // Pre-process line items to fetch product data if only productId is given
-    const processedLineItems = await Promise.all(lineItems.map(async (item) => {
-        let { productId, description, quantity, unitPrice } = item;
-        
-        if (productId && (!description || !unitPrice)) {
-            const product = await Product.findById(productId);
-            if (!product) throw new Error(`Product with ID ${productId} not found`);
-            description = description || product.name;
-            unitPrice = unitPrice || product.price;
-        }
-
-        if (!description || !quantity || unitPrice == null) {
-            throw new Error('Line items must include description, quantity, and unit price.');
-        }
-
-        return {
-            productId,
-            description,
-            quantity,
-            unitPrice,
-            totalPrice: quantity * unitPrice,
-        };
-    }));
-
-    const invoice = new Invoice({
-        client,
+    // In a real app, you would wrap this in a transaction
+    const invoice = await Invoice.create({
+        clientId: client, // Assuming 'client' is the ID
         issueDate,
         dueDate,
-        lineItems: processedLineItems,
+        lineItems, // This assumes lineItems is a JSONB field
         notes,
         tax,
         status,
     });
 
-    const createdInvoice = await invoice.save();
-    res.status(201).json(createdInvoice);
+    res.status(201).json(invoice);
 });
 
 // @desc    Get invoice by ID
 // @route   GET /api/invoices/:id
 // @access  Private
 const getInvoiceById = asyncHandler(async (req, res) => {
-    const invoice = await Invoice.findById(req.params.id).populate('client', 'companyName email');
+    const invoice = await Invoice.findByPk(req.params.id, {
+        include: [{ model: Client, attributes: ['companyName', 'email'] }]
+    });
     if (invoice) {
         res.json(invoice);
     } else {
@@ -89,22 +66,17 @@ const getInvoiceById = asyncHandler(async (req, res) => {
 // @route   PUT /api/invoices/:id/pay
 // @access  Private
 const markInvoiceAsPaid = asyncHandler(async (req, res) => {
-    const invoice = await Invoice.findById(req.params.id);
+    const invoice = await Invoice.findByPk(req.params.id);
 
     if (invoice) {
-        if (invoice.status === 'paid') {
-            res.status(400);
-            throw new Error('Invoice is already paid');
-        }
-        
-        await invoice.markAsPaid();
+        invoice.status = 'paid';
+        await invoice.save();
         res.json({ message: `Invoice ${invoice.invoiceNumber} marked as paid.`});
     } else {
         res.status(404);
         throw new Error('Invoice not found');
     }
 });
-
 
 module.exports = {
     getInvoices,

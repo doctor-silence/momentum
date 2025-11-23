@@ -16,14 +16,13 @@ const { scheduleOverdueCheck } = require('./jobs/invoiceJobs');
 // Passport config
 require('./config/passport')(passport);
 
+const db = require('./models');
+
 // Initialize Express app
 const app = express();
 
-// Connect to Database
-connectDB().then(() => {
-  // Schedule cron jobs after DB connection is successful
-  scheduleOverdueCheck();
-});
+// Connect to Database and sync models
+db.syncAll();
 
 // --- Middleware ---
 // Session middleware (required for Passport)
@@ -57,6 +56,7 @@ app.get('/api/health', (req, res) => {
 
 // Application-specific routes
 app.use('/api/auth', require('./routes/authRoutes')); // Consolidated auth routes
+app.use('/api/users', require('./routes/userRoutes')); // User-specific, protected routes
 app.use('/api/clients', require('./routes/clientRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));

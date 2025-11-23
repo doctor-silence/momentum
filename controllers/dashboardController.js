@@ -1,52 +1,44 @@
 const asyncHandler = require('express-async-handler');
-const Invoice = require('../models/invoiceModel');
-const Client = require('../models/clientModel');
+const { Invoice, Client } = require('../models');
+const { Op, fn, col } = require('sequelize');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard
 // @access  Private
 const getDashboardStats = asyncHandler(async (req, res) => {
   // 1. Total Revenue (sum of all 'paid' invoices)
-  const totalRevenueAgg = Invoice.aggregate([
-    { $match: { status: 'paid' } },
-    { $group: { _id: null, total: { $sum: '$total' } } }
-  ]);
+  const totalRevenue = await Invoice.sum('total', {
+    where: { status: 'paid' }
+  });
 
   // 2. New clients this month
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const newClientsCount = Client.countDocuments({
-    createdAt: { $gte: startOfMonth }
+  const newClientsCount = await Client.count({
+    where: { createdAt: { [Op.gte]: startOfMonth } }
   });
 
   // 3. Total amount overdue
-  const overdueAmountAgg = Invoice.aggregate([
-    { $match: { status: 'overdue' } },
-    { $group: { _id: null, total: { $sum: '$total' } } }
-  ]);
+  const totalOverdueAmount = await Invoice.sum('total', {
+    where: { status: 'overdue' }
+  });
 
   // 4. Counts of invoices by status
-  const invoiceStatusCountsAgg = Invoice.aggregate([
-    { $group: { _id: '$status', count: { $sum: 1 } } }
-  ]);
+  const invoiceStatusCountsResult = await Invoice.findAll({
+    group: ['status'],
+    attributes: ['status', [fn('COUNT', col('status')), 'count']],
+    raw: true,
+  });
 
-  // Execute all promises in parallel for efficiency
-  const [revenue, newClients, overdue, statusCounts] = await Promise.all([
-    totalRevenueAgg,
-    newClientsCount,
-    overdueAmountAgg,
-    invoiceStatusCountsAgg,
-  ]);
-  
   // Format the results
   const stats = {
-    totalRevenue: revenue[0] ? revenue[0].total : 0,
-    newClientsThisMonth: newClients,
-    totalOverdueAmount: overdue[0] ? overdue[0].total : 0,
-    invoiceStatusCounts: statusCounts.reduce((acc, item) => {
-      acc[item._id] = item.count;
+    totalRevenue: totalRevenue || 0,
+    newClientsThisMonth: newClientsCount || 0,
+    totalOverdueAmount: totalOverdueAmount || 0,
+    invoiceStatusCounts: invoiceStatusCountsResult.reduce((acc, item) => {
+      acc[item.status] = parseInt(item.count, 10);
       return acc;
     }, {}),
   };

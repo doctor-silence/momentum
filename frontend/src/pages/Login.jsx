@@ -32,7 +32,9 @@ export default function Login() {
       navigate('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error("Login failed:", error);
-      setFormError(error.response?.data?.message || 'Произошла неизвестная ошибка.');
+      // The interceptor might create a new Error, so check error.message first.
+      const message = error.message || error.response?.data?.message || 'Произошла неизвестная ошибка.';
+      setFormError(message);
     }
   };
   

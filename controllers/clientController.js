@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const Client = require('../models/clientModel');
+const { Client, User } = require('../models');
+const { Op } = require('sequelize');
 
 // @desc    Get all clients with filtering, sorting, and pagination
 // @route   GET /api/clients
@@ -8,29 +9,26 @@ const getClients = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, sortBy = 'createdAt', order = 'desc', status, search } = req.query;
 
   const query = {};
-
   if (status) {
     query.status = status;
   }
-  
   if (search) {
-    query.companyName = { $regex: search, $options: 'i' };
+    query.companyName = { [Op.iLike]: `%${search}%` }; // Case-insensitive search
   }
 
-  const clients = await Client.find(query)
-    .populate('managedBy', 'firstName lastName')
-    .sort({ [sortBy]: order === 'asc' ? 1 : -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    .exec();
-
-  const count = await Client.countDocuments(query);
+  const clients = await Client.findAndCountAll({
+    where: query,
+    order: [[sortBy, order.toUpperCase()]],
+    limit: parseInt(limit),
+    offset: (parseInt(page) - 1) * parseInt(limit),
+    include: [{ model: User, attributes: ['firstName', 'lastName'] }],
+  });
 
   res.json({
-    clients,
-    totalPages: Math.ceil(count / limit),
+    clients: clients.rows,
+    totalPages: Math.ceil(clients.count / limit),
     currentPage: page,
-    totalClients: count,
+    totalClients: clients.count,
   });
 });
 
@@ -40,25 +38,26 @@ const getClients = asyncHandler(async (req, res) => {
 const createClient = asyncHandler(async (req, res) => {
   const { companyName, contactName, email, phone, address, status } = req.body;
 
-  const client = new Client({
+  const client = await Client.create({
     companyName,
     contactName,
     email,
     phone,
     address,
     status,
-    managedBy: req.user._id, // Assign logged-in user as manager
+    managedBy: req.user.id, // Assign logged-in user as manager
   });
 
-  const createdClient = await client.save();
-  res.status(201).json(createdClient);
+  res.status(201).json(client);
 });
 
 // @desc    Get a single client by ID
 // @route   GET /api/clients/:id
 // @access  Private
 const getClientById = asyncHandler(async (req, res) => {
-  const client = await Client.findById(req.params.id).populate('managedBy', 'fullName email');
+  const client = await Client.findByPk(req.params.id, {
+    include: [{ model: User, attributes: ['firstName', 'lastName', 'email'] }],
+  });
 
   if (client) {
     res.json(client);
@@ -74,7 +73,7 @@ const getClientById = asyncHandler(async (req, res) => {
 const updateClient = asyncHandler(async (req, res) => {
   const { companyName, contactName, email, phone, address, status, managedBy } = req.body;
 
-  const client = await Client.findById(req.params.id);
+  const client = await Client.findByPk(req.params.id);
 
   if (client) {
     client.companyName = companyName || client.companyName;
@@ -83,8 +82,8 @@ const updateClient = asyncHandler(async (req, res) => {
     client.phone = phone || client.phone;
     client.address = address || client.address;
     client.status = status || client.status;
-    if (req.user.role ==='admin' && managedBy) {
-        client.managedBy = managedBy;
+    if (req.user.role === 'admin' && managedBy) {
+      client.managedBy = managedBy; // This should be the ID
     }
 
     const updatedClient = await client.save();
@@ -99,17 +98,16 @@ const updateClient = asyncHandler(async (req, res) => {
 // @route   DELETE /api/clients/:id
 // @access  Private/Admin
 const deleteClient = asyncHandler(async (req, res) => {
-    const client = await Client.findById(req.params.id);
+  const client = await Client.findByPk(req.params.id);
 
-    if (client) {
-        await client.deleteOne();
-        res.json({ message: 'Client removed' });
-    } else {
-        res.status(404);
-        throw new Error('Client not found');
-    }
+  if (client) {
+    await client.destroy(); // Sequelize method for deletion
+    res.json({ message: 'Client removed' });
+  } else {
+    res.status(404);
+    throw new Error('Client not found');
+  }
 });
-
 
 module.exports = {
   getClients,

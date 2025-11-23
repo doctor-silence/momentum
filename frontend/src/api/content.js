@@ -1,21 +1,30 @@
 import apiClient from './apiClient';
 
+/**
+ * Saves a new piece of content.
+ * @param {object} contentData - The content data to save.
+ * @returns {Promise<object>} The saved content object.
+ */
 export const saveContentApi = async (contentData) => {
   try {
     const { data } = await apiClient.post('/content', contentData);
     return data;
   } catch (error) {
-    console.error("Error saving content:", error.response?.data?.message || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to save content');
+    // The apiClient interceptor will log the error, so we just re-throw it
+    // for the component to handle.
+    throw error;
   }
 };
 
+/**
+ * Fetches all content for the authenticated user.
+ * @returns {Promise<Array>} An array of content objects.
+ */
 export const getUserContentApi = async () => {
   try {
     const { data } = await apiClient.get('/content');
     return data;
   } catch (error) {
-    console.error("Error fetching user content:", error.response?.data?.message || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to fetch content');
+    throw error;
   }
 };

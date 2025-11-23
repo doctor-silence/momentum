@@ -26,14 +26,24 @@ export default function Register() {
   });
 
   const onSubmit = async (values) => {
-    setFormError(''); // Reset error on new submission
+    setFormError('');
     try {
+      // First, register the user
       await apiClient.post('/auth/register', values);
-      // Redirect to login after successful registration
-      navigate('/login');
+
+      // Then, immediately log them in
+      const { data } = await apiClient.post('/auth/login', {
+        email: values.email,
+        password: values.password,
+      });
+
+      localStorage.setItem('authToken', data.token);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      navigate('/dashboard'); // Redirect to dashboard
+
     } catch (error) {
       console.error("Registration failed:", error);
-      const message = error.response?.data?.message || 'Произошла неизвестная ошибка.';
+      const message = error.message || error.response?.data?.message || 'Произошла неизвестная ошибка.';
       if (message === 'User already exists') {
         setFormError('Пользователь с таким email уже существует.');
       } else {

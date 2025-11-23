@@ -8,7 +8,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 // Load models
 const User = require('../models/userModel');
-const Client = require('../models/clientModel');
+// const Client = require('../models/clientModel');
 const Product = require('../models/productModel');
 const Invoice = require('../models/invoiceModel');
 const Counter = require('../models/invoiceModel').Counter;
