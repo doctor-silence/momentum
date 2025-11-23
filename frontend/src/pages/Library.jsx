@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Library as LibraryIcon, RefreshCw, Plus, Search, CalendarPlus } from "lucide-react";
+import { Library as LibraryIcon, RefreshCw, Plus, Search, CalendarPlus, Calendar as CalendarIcon } from "lucide-react";
 import { getUserContentApi, updateContentApi } from "@/api/content";
 import ContentViewModal from "../components/common/ContentViewModal";
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useToast } from "@/components/ui/use-toast";
-
+import { format } from "date-fns";
 
 const platforms = ["instagram", "linkedin", "telegram", "twitter", "tiktok", "vk"];
 const statuses = ["draft", "published", "scheduled", "archived"];
-
 const statusTranslations = {
   draft: "Черновик",
   published: "Опубликован",
   scheduled: "Запланирован",
   archived: "В архиве",
 };
+
+// Consistent styling for Select components
+const selectTriggerClass = "bg-white/10 border-white/20 text-white data-[placeholder]:text-white/60";
+const selectContentClass = "bg-slate-800/90 border-white/20 text-white backdrop-blur-lg";
+const selectItemClass = "hover:bg-white/10 focus:bg-white/10";
+
 
 export default function Library() {
   const navigate = useNavigate();
@@ -30,11 +35,7 @@ export default function Library() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const [filters, setFilters] = useState({
-    search: "",
-    platform: "all",
-    status: "all",
-  });
+  const [filters, setFilters] = useState({ search: "", platform: "all", status: "all" });
   const debouncedSearch = useDebounce(filters.search, 300);
 
   const [selectedContent, setSelectedContent] = useState(null);
@@ -58,10 +59,20 @@ export default function Library() {
     }
   }, [debouncedSearch, filters.platform, filters.status]);
 
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
+  useEffect(() => { fetchContent(); }, [fetchContent]);
 
+  const handleStatusChange = async (itemId, newStatus) => {
+    try {
+      await updateContentApi(itemId, { status: newStatus });
+      setContent(prevContent => prevContent.map(item => 
+        item.id === itemId ? { ...item, status: newStatus } : item
+      ));
+      toast({ title: "Статус обновлен" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Ошибка", description: "Не удалось обновить статус." });
+    }
+  };
+  
   const handleSchedule = async (item) => {
     try {
       await updateContentApi(item.id, {
@@ -84,54 +95,51 @@ export default function Library() {
     <div className="min-h-screen p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <LibraryIcon className="w-12 h-12 text-blue-400" />
-              <h1 className="text-4xl lg:text-5xl font-bold text-white">Библиотека контента</h1>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button onClick={fetchContent} disabled={isLoading} variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                    Обновить
-                </Button>
-                <Link to={createPageUrl("Generate")}><Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"><Plus className="w-4 h-4 mr-2" />Создать контент</Button></Link>
-            </div>
+            <div className="flex items-center gap-3"><LibraryIcon className="w-12 h-12 text-blue-400" /><h1 className="text-4xl lg:text-5xl font-bold text-white">Библиотека контента</h1></div>
+            <div className="flex items-center gap-2"><Button onClick={fetchContent} disabled={isLoading} variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20"><RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />Обновить</Button><Link to={createPageUrl("Generate")}><Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"><Plus className="w-4 h-4 mr-2" />Создать контент</Button></Link></div>
         </div>
-
         <Card className="bg-white/10 backdrop-blur-xl border-white/20"><CardHeader><CardTitle className="text-white">Фильтры</CardTitle></CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-4">
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/50" /><Input placeholder="Поиск контента..." value={filters.search} onChange={(e) => setFilters(f => ({...f, search: e.target.value}))} className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pl-10"/></div>
-            <Select value={filters.platform} onValueChange={(v) => setFilters(f => ({...f, platform: v}))}><SelectTrigger className="bg-white/10 border-white/20 text-white"><SelectValue placeholder="Все платформы" /></SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/20"><SelectItem value="all">Все платформы</SelectItem>{platforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+            <Select value={filters.platform} onValueChange={(v) => setFilters(f => ({...f, platform: v}))}><SelectTrigger className={selectTriggerClass}><SelectValue placeholder="Все платформы" /></SelectTrigger>
+                <SelectContent className={selectContentClass}><SelectItem value="all" className={selectItemClass}>Все платформы</SelectItem>{platforms.map(p => <SelectItem key={p} value={p} className={selectItemClass}>{p}</SelectItem>)}</SelectContent>
             </Select>
-            <Select value={filters.status} onValueChange={(v) => setFilters(f => ({...f, status: v}))}><SelectTrigger className="bg-white/10 border-white/20 text-white"><SelectValue placeholder="Все статусы" /></SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/20"><SelectItem value="all">Все статусы</SelectItem>{statuses.map(s => <SelectItem key={s} value={s}>{statusTranslations[s] || s}</SelectItem>)}</SelectContent>
+            <Select value={filters.status} onValueChange={(v) => setFilters(f => ({...f, status: v}))}><SelectTrigger className={selectTriggerClass}><SelectValue placeholder="Все статусы" /></SelectTrigger>
+                <SelectContent className={selectContentClass}><SelectItem value="all" className={selectItemClass}>Все статусы</SelectItem>{statuses.map(s => <SelectItem key={s} value={s} className={selectItemClass}>{statusTranslations[s] || s}</SelectItem>)}</SelectContent>
             </Select>
           </CardContent>
         </Card>
-
         <div className="space-y-4">
           {isLoading && <p className="text-white/70 text-center">Загрузка...</p>}
           {error && <p className="text-red-400 text-center">{error}</p>}
           {!isLoading && !error && content.length === 0 && (<p className="text-white/70 text-center">Контент не найден.</p>)}
           {!isLoading && !error && content.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {content.map((item) => (
-                <Card key={item.id} className="bg-white/5 border-white/10 text-white flex flex-col">
-                  <div className="p-4 cursor-pointer" onClick={() => handleContentClick(item)}>
-                    <CardTitle className="line-clamp-2 text-base mb-2">{item.title}</CardTitle>
-                    <p className="text-sm text-white/70 line-clamp-3 flex-grow">{item.body}</p>
+                <Card key={item.id} className="bg-white/5 border-white/10 text-white flex flex-col hover:bg-white/10 transition-colors">
+                  <div className="p-6 flex-grow space-y-3">
+                    <h3 className="font-bold text-lg line-clamp-2 cursor-pointer" onClick={() => handleContentClick(item)}>{item.title}</h3>
+                    <p className="text-sm text-white/70 line-clamp-2 cursor-pointer" onClick={() => handleContentClick(item)}>{item.body}</p>
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                        <Badge className="bg-black text-white">{item.platform}</Badge>
+                        <Badge className="bg-amber-500/80 text-black">{statusTranslations[item.status] || item.status}</Badge>
+                        <Badge className="bg-white/10 text-white/80">{item.content_type}</Badge>
+                    </div>
+                     <div className="text-xs text-white/60 pt-1">
+                        {format(new Date(item.createdAt), "MMM d, yyyy")}
+                    </div>
                   </div>
                   <div className="p-4 mt-auto border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="bg-white/10">{item.platform}</Badge>
-                        <Badge variant="secondary">{statusTranslations[item.status] || item.status}</Badge>
-                      </div>
-                      {item.status === 'draft' && (
-                        <Button size="sm" onClick={() => handleSchedule(item)} className="bg-amber-500/80 hover:bg-amber-500/100 text-white">
-                          <CalendarPlus className="w-4 h-4 mr-2" />
-                          Запланировать
-                        </Button>
-                      )}
+                    <Select value={item.status} onValueChange={(newStatus) => handleStatusChange(item.id, newStatus)}>
+                        <SelectTrigger className={`w-[140px] ${selectTriggerClass}`}><SelectValue placeholder="Статус" /></SelectTrigger>
+                        <SelectContent className={selectContentClass}>
+                            {statuses.map(s => <SelectItem key={s} value={s} className={selectItemClass}>{statusTranslations[s] || s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Button size="sm" onClick={() => handleSchedule(item)} className="bg-white/10 hover:bg-white/20 text-white">
+                      <CalendarPlus className="w-4 h-4 mr-2" />
+                      Запланировать
+                    </Button>
                   </div>
                 </Card>
               ))}
