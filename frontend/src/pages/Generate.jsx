@@ -116,14 +116,13 @@ export default function Generate() {
       const contentToSave = {
         title: generatedContent.title,
         body: generatedContent.body,
-        platform: generatedContent.platform,
-        content_type: generatedContent.content_type,
+        platform: selectedPlatform, // Use state directly
+        content_type: selectedContentType, // Use state directly
         hashtags: generatedContent.hashtags,
         status: "draft",
-        // Spreading other potential fields from AI response
-        ...generatedContent 
       };
-
+      
+      console.log("Data being sent to API:", contentToSave);
       await saveContentApi(contentToSave);
 
       toast({

@@ -12,7 +12,7 @@ const createContent = asyncHandler(async (req, res) => {
 
   if (!title || !body || !platform || !content_type || !createdBy) {
     res.status(400);
-    throw new Error('Please provide all required fields (title, body, platform, content_type, createdBy)');
+    throw new Error('Пожалуйста, предоставьте все обязательные поля (title, body, platform, content_type).');
   }
 
   const content = await Content.create({
