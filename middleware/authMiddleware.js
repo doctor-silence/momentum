@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
 const protect = asyncHandler(async (req, res, next) => {
+  console.log('Protect middleware running'); // Added for debugging
   let token;
 
   if (
@@ -20,6 +21,7 @@ const protect = asyncHandler(async (req, res, next) => {
       req.user = await User.findByPk(decoded.id, {
         attributes: { exclude: ['password'] }
       });
+      console.log('req.user after protect:', req.user); // Added for debugging
       
       if (!req.user) {
         res.status(401);

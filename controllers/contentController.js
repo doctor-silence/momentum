@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { Content, User } = require('../models');
+const { Op } = require('sequelize'); // Import Op for operators
 
 // @desc    Create new content
 // @route   POST /api/content

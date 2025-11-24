@@ -29,6 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       token: generateToken(user.id),
+      freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations for new user
     });
   } else {
     res.status(400);
@@ -55,6 +56,7 @@ const loginUser = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       token: generateToken(user.id),
+      freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations on login
     });
   } else {
     res.status(401);
@@ -84,6 +86,30 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get current authenticated user
+// @route   GET /api/users/me
+// @access  Private
+const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findByPk(req.user.id, {
+    attributes: { exclude: ['password'] }
+  });
+
+  if (user) {
+    res.json({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private/Admin
@@ -98,5 +124,6 @@ module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
+  getMe, // Export new function
   getUsers,
 };

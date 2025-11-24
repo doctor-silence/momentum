@@ -1,11 +1,26 @@
 const asyncHandler = require('express-async-handler');
 const axios = require('axios');
+const { User } = require('../models'); // Corrected path to User model
 
 // @desc    Generate content using DeepSeek AI
 // @route   POST /api/ai/generate
 // @access  Private
 const generateContent = asyncHandler(async (req, res) => {
   const { prompt } = req.body;
+  const createdBy = req.user.id;
+
+  // Find the user to check free generations left
+  const user = await User.findByPk(createdBy);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (user.freeGenerationsLeft <= 0) {
+    res.status(403);
+    throw new Error('Вы исчерпали бесплатные генерации контента. Пожалуйста, приобретите подписку.');
+  }
 
   if (!prompt) {
     res.status(400);
@@ -58,9 +73,13 @@ The JSON object you return must match this schema: { "type": "object", "properti
       }
     );
 
+    // Decrement free generations and save user
+    user.freeGenerationsLeft -= 1;
+    await user.save();
+
     // The response from the AI is a stringified JSON, so we need to parse it.
     const generatedJson = JSON.parse(response.data.choices[0].message.content);
-    res.json(generatedJson);
+    res.json({ ...generatedJson, freeGenerationsLeft: user.freeGenerationsLeft });
 
   } catch (error) {
     console.error('Error calling DeepSeek API:', error.response ? error.response.data : error.message);

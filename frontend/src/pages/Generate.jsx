@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { generateAiContent, generateIdeasFromAI } from "@/api/ai";
 import { saveContentApi } from "@/api/content";
 import { createPageUrl } from "@/utils";
+import { getUserMeApi } from "@/api/auth"; // Import user API
 
 // UI Components
 import { useToast } from "@/components/ui/use-toast";
@@ -26,6 +27,7 @@ import ContentTypeSelector from "../components/generate/ContentTypeSelector";
 import GenerationOptions from "../components/generate/GenerationOptions";
 import GeneratedContent from "../components/generate/GeneratedContent";
 import ContentIdeas from "../components/generate/ContentIdeas";
+import SubscriptionRequiredModal from "../components/common/SubscriptionRequiredModal"; // Import subscription modal
 
 export default function Generate() {
   const { toast } = useToast();
@@ -35,6 +37,7 @@ export default function Generate() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [contentIdeas, setContentIdeas] = useState([]);
   const [isLoadingIdeas, setIsLoadingIdeas] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false); // New state for subscription modal
 
   const [userProfile, setUserProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -45,13 +48,33 @@ export default function Generate() {
         console.error("Failed to parse profile from localStorage", e);
       }
     }
+    // Default profile, will be updated by API call
     return {
       industry: 'бизнес-коучинг',
       core_message: 'Трансформация жизни через проверенные стратегии',
       brand_voice: { tone: 'professional' },
       content_pillars: ['мышление', 'стратегия', 'советы по успеху'],
+      freeGenerationsLeft: 0, // Initialize with 0, will be updated
     };
   });
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const user = await getUserMeApi();
+        setUserProfile(prevProfile => ({ ...prevProfile, ...user }));
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+        toast({
+          variant: "destructive",
+          title: "Ошибка загрузки профиля",
+          description: error.message || "Не удалось загрузить данные пользователя.",
+        });
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   const [selectedPlatform, setSelectedPlatform] = useState("linkedin");
   const [selectedContentType, setSelectedContentType] = useState("post");
@@ -96,6 +119,12 @@ export default function Generate() {
     setIsLoading(true);
     setGeneratedContent(null);
     try {
+      if (userProfile.freeGenerationsLeft <= 0) {
+        setIsSubscriptionModalOpen(true);
+        setIsLoading(false);
+        return;
+      }
+
       const finalPrompt = prompt || customPrompt || `Создай контент о ${userProfile?.core_message}`;
 
       const fullPromptContext = `
@@ -116,6 +145,18 @@ export default function Generate() {
 
       const result = await generateAiContent(fullPromptContext);
       setGeneratedContent({ ...result, generation_prompt: finalPrompt });
+
+      // Update freeGenerationsLeft from the response
+      if (result.freeGenerationsLeft !== undefined) {
+        setUserProfile(prevProfile => ({
+          ...prevProfile,
+          freeGenerationsLeft: result.freeGenerationsLeft
+        }));
+        // Also update localStorage
+        const savedProfile = JSON.parse(localStorage.getItem('userProfile'));
+        localStorage.setItem('userProfile', JSON.stringify({ ...savedProfile, freeGenerationsLeft: result.freeGenerationsLeft }));
+      }
+
     } catch (error) {
       console.error("Error generating content:", error);
       toast({ variant: "destructive", title: "Ошибка генерации", description: error.message });
@@ -237,6 +278,7 @@ export default function Generate() {
           </div>
         </div>
       </div>
+      <SubscriptionRequiredModal isOpen={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen} />
     </div>
   );
 }

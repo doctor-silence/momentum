@@ -42,6 +42,11 @@ User.init({
     type: DataTypes.STRING,
     defaultValue: 'manager',
   },
+  freeGenerationsLeft: {
+    type: DataTypes.INTEGER,
+    defaultValue: 5,
+    allowNull: false,
+  },
 }, {
   sequelize,
   modelName: 'User',
