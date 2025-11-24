@@ -1,41 +1,99 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Plus, Trash2, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { getUserContentApi, updateContentApi, deleteContentApi } from "@/api/content";
+import ConfirmationDialog from "../components/common/ConfirmationDialog";
 
 export default function Calendar() {
   const [items, setItems] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isCancelConfirmationOpen, setIsCancelConfirmationOpen] = useState(false);
+  const [itemToCancel, setItemToCancel] = useState(null);
+
+  const loadContent = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all content, without any filters for the calendar view
+      const allContent = await getUserContentApi(); 
+      setItems(allContent);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Ошибка", description: "Не удалось загрузить контент для календаря." });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     loadContent();
-  }, []);
-
-  const loadContent = async () => {
-    setIsLoading(true);
-    const all = await base44.entities.Content.list("-updated_date", 500);
-    setItems(all);
-    setIsLoading(false);
-  };
+  }, [loadContent]);
 
   const scheduleItem = async (item, date) => {
     if (!date) return;
-    await base44.entities.Content.update(item.id, {
-      scheduled_date: date.toISOString(),
-      status: "scheduled"
-    });
-    toast({ title: "Запланировано", description: `"${item.title}" запланирован на ${date.toLocaleDateString()}.` });
-    await loadContent();
+    try {
+      await updateContentApi(item.id, {
+        scheduled_date: date.toISOString(),
+        status: "scheduled"
+      });
+      toast({ title: "Запланировано", description: `"${item.title}" запланирован на ${date.toLocaleDateString()}.` });
+      await loadContent(); // Refresh the calendar
+    } catch (error) {
+      toast({ variant: "destructive", title: "Ошибка", description: "Не удалось запланировать пост." });
+    }
+  };
+
+  const handleDelete = (itemId) => {
+    setItemToDelete(itemId);
+    setIsDeleteConfirmationOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        await deleteContentApi(itemToDelete);
+        toast({ title: "Контент удален" });
+        loadContent(); // Re-fetch content to update the view
+      } catch (error) {
+        toast({ variant: "destructive", title: "Ошибка", description: "Не удалось удалить контент." });
+      } finally {
+        setIsDeleteConfirmationOpen(false);
+        setItemToDelete(null);
+      }
+    }
+  };
+
+  const handleCancelSchedule = (itemId) => {
+    setItemToCancel(itemId);
+    setIsCancelConfirmationOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (itemToCancel) {
+      try {
+        await updateContentApi(itemToCancel, {
+          status: 'draft',
+          scheduled_date: null,
+        });
+        toast({ title: "Планирование отменено" });
+        loadContent(); // Re-fetch content to update the view
+      } catch (error) {
+        toast({ variant: "destructive", title: "Ошибка", description: "Не удалось отменить планирование." });
+      } finally {
+        setIsCancelConfirmationOpen(false);
+        setItemToCancel(null);
+      }
+    }
   };
 
   const renderHeader = () => (
@@ -86,12 +144,15 @@ export default function Calendar() {
           </div>
           <div className="space-y-1">
             {dayItems.map((it) => (
-              <div key={it.id} className="text-xs p-2 rounded-md bg-white/10 border border-white/10">
+              <div key={it.id} className="text-xs p-2 rounded-md bg-white/10 border border-white/10 group relative">
                 <div className="flex items-center justify-between">
                   <span className="text-white font-medium line-clamp-1">{it.title}</span>
                   <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/30 ml-2">{it.platform}</Badge>
                 </div>
                 <div className="text-white/60">{it.content_type}</div>
+                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20" onClick={() => handleCancelSchedule(it.id)}>
+                  <XCircle className="w-4 h-4 text-red-400" />
+                </Button>
               </div>
             ))}
           </div>
@@ -149,22 +210,27 @@ export default function Calendar() {
                       <div className="text-white font-medium line-clamp-1">{d.title}</div>
                       <div className="text-white/60 text-xs">{d.platform} • {d.content_type}</div>
                     </div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" aria-label={`Запланировать ${d.title}`}>
-                          <CalendarIcon className="w-4 h-4 mr-2" />
-                          Запланировать
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0 w-auto bg-white/90 rounded-lg z-50">
-                        <CalendarPicker
-                          mode="single"
-                          selected={d.scheduled_date ? parseISO(d.scheduled_date) : undefined}
-                          onSelect={(date) => scheduleItem(d, date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" aria-label={`Запланировать ${d.title}`}>
+                            <CalendarIcon className="w-4 h-4 mr-2" />
+                            Запланировать
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0 w-auto bg-white/90 rounded-lg z-50">
+                          <CalendarPicker
+                            mode="single"
+                            selected={d.scheduled_date ? parseISO(d.scheduled_date) : undefined}
+                            onSelect={(date) => scheduleItem(d, date)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button variant="destructive" size="icon" onClick={() => handleDelete(d.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -172,6 +238,22 @@ export default function Calendar() {
           </Card>
         </div>
       </div>
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmationOpen}
+        onOpenChange={setIsDeleteConfirmationOpen}
+        onConfirm={confirmDelete}
+        title="Вы уверены, что хотите удалить этот контент?"
+        description="Это действие не может быть отменено. Это навсегда удалит этот контент."
+        confirmText="Удалить"
+      />
+      <ConfirmationDialog
+        isOpen={isCancelConfirmationOpen}
+        onOpenChange={setIsCancelConfirmationOpen}
+        onConfirm={confirmCancel}
+        title="Вы уверены, что хотите отменить планирование?"
+        description="Этот контент будет перемещен в черновики."
+        confirmText="Отменить планирование"
+      />
     </div>
   );
 }

@@ -25,8 +25,7 @@ export const updateContentApi = async (id, updateData) => {
     const { data } = await apiClient.put(`/content/${id}`, updateData);
     return data;
   } catch (error) {
-    console.error("Error updating content:", error.response?.data?.message || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to update content');
+    throw error;
   }
 };
 
@@ -35,7 +34,15 @@ export const getUserContentApi = async (filters = {}) => {
     const { data } = await apiClient.get('/content', { params: filters });
     return data;
   } catch (error) {
-    console.error("Error fetching user content:", error.response?.data?.message || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to fetch content');
+    throw error;
+  }
+};
+
+export const deleteContentApi = async (id) => {
+  try {
+    const { data } = await apiClient.delete(`/content/${id}`);
+    return data;
+  } catch (error) {
+    throw error;
   }
 };

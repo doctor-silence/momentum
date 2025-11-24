@@ -97,8 +97,23 @@ export default function Generate() {
     setGeneratedContent(null);
     try {
       const finalPrompt = prompt || customPrompt || `Создай контент о ${userProfile?.core_message}`;
-      const spec = "..."; // Simplified for brevity
-      const fullPromptContext = `...`; // Simplified for brevity
+
+      const fullPromptContext = `
+      START_USER_PROFILE
+      ${JSON.stringify(userProfile, null, 2)}
+      END_USER_PROFILE
+
+      START_GENERATION_TASK
+      Платформа: ${selectedPlatform}
+      Тип контента: ${selectedContentType}
+      Целевая аудитория: ${selectedAudience || 'не указана'}
+      Тон голоса: ${selectedTone}
+
+      ЗАДАЧА:
+      ${finalPrompt}
+      END_GENERATION_TASK
+      `;
+
       const result = await generateAiContent(fullPromptContext);
       setGeneratedContent({ ...result, generation_prompt: finalPrompt });
     } catch (error) {

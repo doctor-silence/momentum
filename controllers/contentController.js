@@ -76,8 +76,28 @@ const updateContent = asyncHandler(async (req, res) => {
   res.status(200).json(updatedContent);
 });
 
+const deleteContent = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const content = await Content.findByPk(id);
+
+  if (!content) {
+    res.status(404);
+    throw new Error('Content not found');
+  }
+
+  // Check if the user is the owner of the content
+  if (content.createdBy.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error('User not authorized to delete this content');
+  }
+
+  await content.destroy();
+  res.status(200).json({ message: 'Content removed' });
+});
+
 module.exports = {
   createContent,
   getUserContent,
   updateContent,
+  deleteContent,
 };

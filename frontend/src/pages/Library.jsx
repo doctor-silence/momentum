@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Library as LibraryIcon, RefreshCw, Plus, Search, CalendarPlus, Calendar as CalendarIcon } from "lucide-react";
-import { getUserContentApi, updateContentApi } from "@/api/content";
+import { Library as LibraryIcon, RefreshCw, Plus, Search, CalendarPlus, Trash2 } from "lucide-react";
+import { getUserContentApi, updateContentApi, deleteContentApi } from "@/api/content";
 import ContentViewModal from "../components/common/ContentViewModal";
+import ConfirmationDialog from "../components/common/ConfirmationDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +12,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useToast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 const platforms = ["instagram", "linkedin", "telegram", "twitter", "tiktok", "vk"];
 const statuses = ["draft", "published", "scheduled", "archived"];
@@ -40,6 +43,8 @@ export default function Library() {
 
   const [selectedContent, setSelectedContent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const fetchContent = useCallback(async () => {
     setIsLoading(true);
@@ -73,16 +78,37 @@ export default function Library() {
     }
   };
   
-  const handleSchedule = async (item) => {
+  const handleSchedule = async (item, date) => {
+    if (!date) return;
     try {
       await updateContentApi(item.id, {
         status: 'scheduled',
-        scheduled_date: new Date().toISOString(),
+        scheduled_date: date.toISOString(),
       });
-      toast({ title: "Успешно запланировано!", description: `Пост "${item.title}" запланирован на сегодня.` });
-      navigate('/calendar');
+      toast({ title: "Успешно запланировано!", description: `Пост "${item.title}" запланирован на ${date.toLocaleDateString()}.` });
+      navigate('/calendar'); // Navigate to calendar page
     } catch (error) {
       toast({ variant: "destructive", title: "Ошибка", description: "Не удалось запланировать пост." });
+    }
+  };
+  
+  const handleDelete = (itemId) => {
+    setItemToDelete(itemId);
+    setIsDeleteConfirmationOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        await deleteContentApi(itemToDelete);
+        toast({ title: "Контент удален" });
+        fetchContent(); // Re-fetch content to update the list
+      } catch (error) {
+        toast({ variant: "destructive", title: "Ошибка", description: "Не удалось удалить контент." });
+      } finally {
+        setIsDeleteConfirmationOpen(false);
+        setItemToDelete(null);
+      }
     }
   };
 
@@ -136,9 +162,25 @@ export default function Library() {
                             {statuses.map(s => <SelectItem key={s} value={s} className={selectItemClass}>{statusTranslations[s] || s}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Button size="sm" onClick={() => handleSchedule(item)} className="bg-white/10 hover:bg-white/20 text-white">
-                      <CalendarPlus className="w-4 h-4 mr-2" />
-                      Запланировать
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white">
+                          <CalendarPlus className="w-4 h-4 mr-2" />
+                          Запланировать
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-white/10 backdrop-blur-xl border-white/20 text-white">
+                        <Calendar
+                          mode="single"
+                          selected={item.scheduled_date ? parseISO(item.scheduled_date) : undefined}
+                          onSelect={(date) => handleSchedule(item, date)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(item.id)}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Удалить
                     </Button>
                   </div>
                 </Card>
@@ -148,6 +190,14 @@ export default function Library() {
         </div>
       </div>
       <ContentViewModal content={selectedContent} open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmationOpen}
+        onOpenChange={setIsDeleteConfirmationOpen}
+        onConfirm={confirmDelete}
+        title="Вы уверены, что хотите удалить этот контент?"
+        description="Это действие не может быть отменено. Это навсегда удалит этот контент."
+        confirmText="Удалить"
+      />
     </div>
   );
 }
