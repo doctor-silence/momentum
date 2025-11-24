@@ -12,6 +12,7 @@ import {
   Eye
 } from "lucide-react";
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ContentViewModal from "../common/ContentViewModal";
@@ -27,6 +28,12 @@ const statusColors = {
   draft: "bg-gray-500/20 text-gray-300 border-gray-400/30",
   scheduled: "bg-amber-500/20 text-amber-300 border-amber-400/30",
   published: "bg-green-500/20 text-green-300 border-green-400/30"
+};
+
+const statusTranslations = {
+  draft: "Черновик",
+  scheduled: "Запланирован",
+  published: "Опубликован",
 };
 
 export default function RecentContent({ content }) {
@@ -99,7 +106,7 @@ export default function RecentContent({ content }) {
                       {item.platform}
                     </Badge>
                     <Badge className={`${statusColors[item.status]} border font-medium`}>
-                      {item.status}
+                      {statusTranslations[item.status] || item.status}
                     </Badge>
                   </div>
                   <h4 className="font-semibold text-white line-clamp-2">
@@ -111,7 +118,7 @@ export default function RecentContent({ content }) {
                   <div className="flex items-center gap-4 text-xs text-white/60">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {format(new Date(item.createdAt), "MMM d, yyyy")}
+                      {format(new Date(item.createdAt), "MMM d, yyyy", { locale: ru })}
                     </div>
                     {item.performance_data && (
                       <div className="flex items-center gap-3">

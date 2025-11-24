@@ -6,6 +6,13 @@ import { getUserContentApi } from "@/api/content";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
+const statusTranslations = {
+  draft: "Черновик",
+  published: "Опубликован",
+  scheduled: "Запланирован",
+  archived: "В архиве",
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -50,7 +57,7 @@ export default function Analytics() {
 
     return {
       chartData: Object.keys(platformCounts).map(platform => ({ name: platform, count: platformCounts[platform] })),
-      statusData: Object.keys(statusCounts).map(status => ({ name: status, value: statusCounts[status] })),
+      statusData: Object.keys(statusCounts).map(status => ({ name: statusTranslations[status] || status, value: statusCounts[status] })),
       totalContent: content.length,
       draftCount: statusCounts.draft || 0,
       publishedCount: statusCounts.published || 0,
@@ -151,3 +158,5 @@ export default function Analytics() {
     </div>
   );
 }
+
+

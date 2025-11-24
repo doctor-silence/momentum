@@ -13,6 +13,7 @@ import { createPageUrl } from "@/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useToast } from "@/components/ui/use-toast";
 import { format, parseISO } from "date-fns";
+import { ru } from 'date-fns/locale';
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
@@ -152,7 +153,7 @@ export default function Library() {
                         <Badge className="bg-white/10 text-white/80">{item.content_type}</Badge>
                     </div>
                      <div className="text-xs text-white/60 pt-1">
-                        {format(new Date(item.createdAt), "MMM d, yyyy")}
+                        {format(new Date(item.createdAt), "MMM d, yyyy", { locale: ru })}
                     </div>
                   </div>
                   <div className="p-4 mt-auto border-t border-white/10 flex flex-wrap items-center justify-between gap-2">

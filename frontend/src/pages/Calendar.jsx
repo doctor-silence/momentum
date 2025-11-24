@@ -185,7 +185,7 @@ export default function Calendar() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="grid grid-cols-7 gap-2 text-xs text-white/70 mb-1">
-                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
+                {["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"].map((d) => (
                   <div key={d} className="text-center">{d}</div>
                 ))}
               </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { Calendar, Hash } from "lucide-react";
 
 const platformColors = {
@@ -92,7 +93,7 @@ export default function ContentViewModal({ content, open, onOpenChange }) {
 
           {/* Created Date */}
           <div className="text-white/50 text-sm">
-            Создано: {format(new Date(content.createdAt), "d MMMM yyyy, HH:mm")}
+            Создано: {format(new Date(content.createdAt), "d MMMM yyyy, HH:mm", { locale: ru })}
           </div>
         </div>
       </DialogContent>

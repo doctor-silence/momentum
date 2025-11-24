@@ -258,7 +258,7 @@ export default function Profile() {
                       value={userProfile.industry} 
                       onValueChange={(value) => setUserProfile(prev => ({ ...prev, industry: value }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white">
                         <SelectValue placeholder="Выберите вашу отрасль" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
@@ -284,7 +284,7 @@ export default function Profile() {
                         goals: { ...prev.goals, primary_goal: value }
                       }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white">
                         <SelectValue placeholder="Выберите основную цель" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
@@ -329,7 +329,7 @@ export default function Profile() {
                         brand_voice: { ...prev.brand_voice, tone: value }
                       }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
@@ -462,7 +462,7 @@ export default function Profile() {
                   <Input
                     placeholder="Добавить контентный столп"
                     value={newPillar}
-                    onChange={(e) => setNewPillar(e.target.value)}
+                    onChange={(e) => setNewPillar(prev => ({ ...prev, newPillar: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm"
                     onKeyPress={(e) => e.key === 'Enter' && addPillar()}
                   />
