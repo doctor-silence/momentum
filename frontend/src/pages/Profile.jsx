@@ -117,36 +117,35 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!validate()) {
-      toast({ title: "Fix required fields", description: "Please correct the highlighted fields.", variant: "destructive" });
+      toast({ title: "Исправьте обязательные поля", description: "Пожалуйста, исправьте выделенные поля.", variant: "destructive" });
       return;
     }
     setIsSaving(true);
     try {
       const profileData = {
-        ...userProfile,
-        goals: {
-          ...userProfile.goals,
-          monthly_content_target: Number(userProfile.goals?.monthly_content_target || 0)
-        },
-        onboarding_completed: true
+        core_message: userProfile.core_message,
+        industry: userProfile.industry,
+        brand_voice_tone: userProfile.brand_voice.tone,
+        writing_style_description: userProfile.brand_voice.writing_style,
+        monthly_content_goal: Number(userProfile.goals?.monthly_content_target || 0),
+        target_audiences: userProfile.target_audiences,
+        content_pillars: userProfile.content_pillars,
+        goals_primary_goal: userProfile.goals.primary_goal,
+        preferred_platforms: userProfile.preferred_platforms,
+        onboarding_completed: true,
       };
 
-      if (userProfile.id) {
-        await UserProfile.update(userProfile.id, profileData);
-      } else {
-        await UserProfile.create(profileData);
-      }
+      await updateUserMeApi(profileData); // Use the new API to update the profile
 
-      toast({ title: "Profile saved", description: "Your preferences were updated." });
-      navigate(createPageUrl("Dashboard"));
+      toast({ title: "Профиль сохранен", description: "Ваши настройки профиля успешно обновлены." });
+      navigate(createPageUrl("Dashboard")); // Redirect to dashboard after saving
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast({ title: "Save failed", description: "Please try again.", variant: "destructive" });
+      toast({ title: "Ошибка сохранения", description: error.message || "Пожалуйста, попробуйте еще раз.", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
   };
-
   const addAudience = () => {
     if (newAudience.name) {
       setUserProfile(prev => ({
