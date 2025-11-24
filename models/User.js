@@ -38,6 +38,44 @@ User.init({
     type: DataTypes.STRING,
     allowNull: false,
   },
+  // --- Profile Fields ---
+  industry: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  core_message: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
+  brand_voice_tone: { // Storing tone directly
+    type: DataTypes.STRING,
+    defaultValue: 'professional',
+  },
+  writing_style_description: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
+  monthly_content_goal: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  target_audiences: { // Storing as JSON array of objects
+    type: DataTypes.JSONB,
+    defaultValue: [],
+  },
+  content_pillars: { // Storing as JSON array of strings
+    type: DataTypes.JSONB,
+    defaultValue: [],
+  },
+  goals_primary_goal: { // Storing primary_goal directly
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  preferred_platforms: { // Storing as JSON array of strings
+    type: DataTypes.JSONB,
+    defaultValue: [],
+  },
+  // --- End Profile Fields ---
   role: {
     type: DataTypes.STRING,
     defaultValue: 'manager',

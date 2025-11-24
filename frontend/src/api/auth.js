@@ -35,6 +35,18 @@ export const registerUserApi = async (userData) => {
   }
 };
 
+export const updateUserMeApi = async (userData) => {
+  try {
+    const { data } = await apiClient.put('/users/me', userData);
+    // Optionally update localStorage if the response contains updated user data
+    const savedProfile = JSON.parse(localStorage.getItem('userProfile'));
+    localStorage.setItem('userProfile', JSON.stringify({ ...savedProfile, ...data }));
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const logoutUser = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('userProfile');

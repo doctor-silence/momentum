@@ -5,7 +5,7 @@ const generateToken = require('../utils/generateToken');
 // @desc    Register a new user
 // @route   POST /api/auth/register
 const registerUser = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, industry, core_message, brand_voice_tone, writing_style_description, monthly_content_goal, target_audiences, content_pillars, goals_primary_goal, preferred_platforms } = req.body;
 
   const userExists = await User.findOne({ where: { email } });
 
@@ -19,6 +19,15 @@ const registerUser = asyncHandler(async (req, res) => {
     lastName,
     email,
     password,
+    industry,
+    core_message,
+    brand_voice_tone,
+    writing_style_description,
+    monthly_content_goal,
+    target_audiences,
+    content_pillars,
+    goals_primary_goal,
+    preferred_platforms,
   });
 
   if (user) {
@@ -30,6 +39,15 @@ const registerUser = asyncHandler(async (req, res) => {
       role: user.role,
       token: generateToken(user.id),
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations for new user
+      industry: user.industry,
+      core_message: user.core_message,
+      brand_voice_tone: user.brand_voice_tone,
+      writing_style_description: user.writing_style_description,
+      monthly_content_goal: user.monthly_content_goal,
+      target_audiences: user.target_audiences,
+      content_pillars: user.content_pillars,
+      goals_primary_goal: user.goals_primary_goal,
+      preferred_platforms: user.preferred_platforms,
     });
   } else {
     res.status(400);
@@ -57,6 +75,15 @@ const loginUser = asyncHandler(async (req, res) => {
       role: user.role,
       token: generateToken(user.id),
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations on login
+      industry: user.industry,
+      core_message: user.core_message,
+      brand_voice_tone: user.brand_voice_tone,
+      writing_style_description: user.writing_style_description,
+      monthly_content_goal: user.monthly_content_goal,
+      target_audiences: user.target_audiences,
+      content_pillars: user.content_pillars,
+      goals_primary_goal: user.goals_primary_goal,
+      preferred_platforms: user.preferred_platforms,
     });
   } else {
     res.status(401);
@@ -79,6 +106,16 @@ const getUserProfile = asyncHandler(async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      freeGenerationsLeft: user.freeGenerationsLeft,
+      industry: user.industry,
+      core_message: user.core_message,
+      brand_voice_tone: user.brand_voice_tone,
+      writing_style_description: user.writing_style_description,
+      monthly_content_goal: user.monthly_content_goal,
+      target_audiences: user.target_audiences,
+      content_pillars: user.content_pillars,
+      goals_primary_goal: user.goals_primary_goal,
+      preferred_platforms: user.preferred_platforms,
     });
   } else {
     res.status(404);
@@ -102,6 +139,15 @@ const getMe = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations
+      industry: user.industry,
+      core_message: user.core_message,
+      brand_voice_tone: user.brand_voice_tone,
+      writing_style_description: user.writing_style_description,
+      monthly_content_goal: user.monthly_content_goal,
+      target_audiences: user.target_audiences,
+      content_pillars: user.content_pillars,
+      goals_primary_goal: user.goals_primary_goal,
+      preferred_platforms: user.preferred_platforms,
     });
   } else {
     res.status(404);
@@ -109,6 +155,60 @@ const getMe = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Update current authenticated user
+// @route   PUT /api/users/me
+// @access  Private
+const updateMe = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { 
+    firstName, lastName, email,
+    industry, core_message, brand_voice_tone, writing_style_description,
+    monthly_content_goal, target_audiences, content_pillars,
+    goals_primary_goal, preferred_platforms
+  } = req.body;
+
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Update user fields
+  user.firstName = firstName !== undefined ? firstName : user.firstName;
+  user.lastName = lastName !== undefined ? lastName : user.lastName;
+  user.email = email !== undefined ? email : user.email; // Consider if email update should be more secure (e.g., re-verification)
+
+  user.industry = industry !== undefined ? industry : user.industry;
+  user.core_message = core_message !== undefined ? core_message : user.core_message;
+  user.brand_voice_tone = brand_voice_tone !== undefined ? brand_voice_tone : user.brand_voice_tone;
+  user.writing_style_description = writing_style_description !== undefined ? writing_style_description : user.writing_style_description;
+  user.monthly_content_goal = monthly_content_goal !== undefined ? monthly_content_goal : user.monthly_content_goal;
+  user.target_audiences = target_audiences !== undefined ? target_audiences : user.target_audiences;
+  user.content_pillars = content_pillars !== undefined ? content_pillars : user.content_pillars;
+  user.goals_primary_goal = goals_primary_goal !== undefined ? goals_primary_goal : user.goals_primary_goal;
+  user.preferred_platforms = preferred_platforms !== undefined ? preferred_platforms : user.preferred_platforms;
+
+  await user.save();
+
+  res.json({
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    freeGenerationsLeft: user.freeGenerationsLeft,
+    industry: user.industry,
+    core_message: user.core_message,
+    brand_voice_tone: user.brand_voice_tone,
+    writing_style_description: user.writing_style_description,
+    monthly_content_goal: user.monthly_content_goal,
+    target_audiences: user.target_audiences,
+    content_pillars: user.content_pillars,
+    goals_primary_goal: user.goals_primary_goal,
+    preferred_platforms: user.preferred_platforms,
+  });
+});
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -124,6 +224,7 @@ module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
-  getMe, // Export new function
+  getMe,
+  updateMe, // Export new function
   getUsers,
 };
