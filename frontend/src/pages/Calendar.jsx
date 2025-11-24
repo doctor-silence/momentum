@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, parseISO } from "date-fns";
+import { ru } from 'date-fns/locale'; // Import Russian locale
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Plus, Trash2, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -102,7 +103,7 @@ export default function Calendar() {
         <Button aria-label="Previous month" variant="outline" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <h2 className="text-xl font-semibold text-white">{format(currentMonth, "MMMM yyyy")}</h2>
+        <h2 className="text-xl font-semibold text-white">{format(currentMonth, "MMMM yyyy", { locale: ru })}</h2>
         <Button aria-label="Next month" variant="outline" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -145,15 +146,18 @@ export default function Calendar() {
           <div className="space-y-1">
             {dayItems.map((it) => (
               <div key={it.id} className="text-xs p-2 rounded-md bg-white/10 border border-white/10 group relative">
-                <div className="flex items-center justify-between">
+                <div> {/* No flex-grow here */}
                   <span className="text-white font-medium line-clamp-1">{it.title}</span>
-                  <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/30 ml-2">{it.platform}</Badge>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/30">{it.platform}</Badge>
+                    <div className="text-white/60">{it.content_type}</div>
+                  </div>
                 </div>
-                <div className="text-white/60">{it.content_type}</div>
-                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20" onClick={() => handleCancelSchedule(it.id)}>
+                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 hover:bg-red-500/20" onClick={() => handleCancelSchedule(it.id)}>
                   <XCircle className="w-4 h-4 text-red-400" />
                 </Button>
               </div>
+
             ))}
           </div>
         </div>
