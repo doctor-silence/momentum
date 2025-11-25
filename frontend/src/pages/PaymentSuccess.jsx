@@ -1,13 +1,11 @@
 
 import React, { useEffect, useState } from "react";
 import { User } from "@/api/entities";
-import { UserProfile } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Calendar, Home, Sparkles, ArrowRight } from "lucide-react";
+import { CheckCircle2, Calendar, Home, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { createBillingPortalSession } from "@/api/functions";
 
 export default function PaymentSuccess() {
   const [profile, setProfile] = useState(null);
@@ -17,18 +15,12 @@ export default function PaymentSuccess() {
     (async () => {
       try {
         const me = await User.me();
-        const res = await UserProfile.filter({ created_by: me.email });
-        setProfile(res[0] || null);
+        setProfile(me);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
-
-  const handleManageBilling = async () => {
-    const { data } = await createBillingPortalSession();
-    if (data?.url) window.location.href = data.url;
-  };
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
@@ -49,15 +41,15 @@ export default function PaymentSuccess() {
                 Status:{" "}
                 {loading ? (
                   "Checking..."
-                ) : profile?.stripe_subscription_status ? (
-                  <span className="text-emerald-300 font-medium">{profile.stripe_subscription_status}</span>
+                ) : profile?.subscription_status ? (
+                  <span className="text-emerald-300 font-medium">{profile.subscription_status}</span>
                 ) : (
                   <span className="text-white/60">Pending</span>
                 )}
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-4 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
               <Link to={createPageUrl("Dashboard")} className="w-full">
                 <Button className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20">
                   <Home className="w-4 h-4 mr-2" /> Dashboard
@@ -73,9 +65,6 @@ export default function PaymentSuccess() {
                   <Calendar className="w-4 h-4 mr-2" /> Open Calendar
                 </Button>
               </Link>
-              <Button onClick={handleManageBilling} className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20" aria-label="Manage billing in Stripe">
-                Manage Billing
-              </Button>
             </div>
 
             <div className="text-xs text-white/60">

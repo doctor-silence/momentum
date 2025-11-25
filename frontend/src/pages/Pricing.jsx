@@ -16,8 +16,6 @@ const FEATURES = [
   "Приоритетные обновления и улучшения",
 ];
 
-const PRICE_ID = "price_1RzKqB7JTIVdAcBEmgt2CPCs"; // Stripe monthly price id (Starter)
-
 export default function Pricing() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,30 +27,33 @@ export default function Pricing() {
 
   const loadData = async () => {
     const user = await User.me();
-    const res = await UserProfile.filter({ created_by: user.email });
-    setProfile(res[0] || null);
+    // Assuming the user object from User.me() has the subscription info
+    setProfile(user);
     setLoading(false);
   };
 
-  const isActiveStarter =
-    profile?.subscription_tier === "starter" &&
-    (profile?.stripe_subscription_status === "active" || profile?.stripe_subscription_status === "trialing");
+  const isActiveStarter = profile?.subscription_status === 'active';
 
   const handleCheckout = async () => {
     setSubmitting(true);
-    const { data } = await createCheckoutSession({ priceId: PRICE_ID });
-    if (data?.url) {
-      window.location.href = data.url;
-    } else {
-      setSubmitting(false);
-      alert("Could not start checkout. Please try again.");
+    try {
+      const payment = await createCheckoutSession({ price: "4700.00", currency: "RUB" });
+      if (payment?.confirmation?.confirmation_url) {
+        window.location.href = payment.confirmation.confirmation_url;
+      } else {
+        setSubmitting(false);
+        alert("Could not start checkout. Please try again.");
+      }
+    } catch (error) {
+        setSubmitting(false);
+        alert("Could not start checkout. Please try again.");
     }
   };
 
   // Added handleManageBilling function
   const handleManageBilling = async () => {
-    const { data } = await createBillingPortalSession();
-    if (data?.url) window.location.href = data.url;
+    // This would need to be implemented separately
+    alert("Billing management is not available yet.");
   };
 
   return (
@@ -106,10 +107,6 @@ export default function Pricing() {
                   <span className="text-white/90">{f}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-2 pt-2 text-white/60 text-sm">
-                <Shield className="w-4 h-4" />
-                Защищено Stripe
-              </div>
             </div>
 
             <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-white/5 border border-white/10 p-6">
@@ -118,11 +115,7 @@ export default function Pricing() {
               ) : isActiveStarter ? (
                 <>
                   <div className="text-lg text-white">Вы на тарифе Starter</div>
-                  <div className="flex gap-2 w-full">
-                    <Button onClick={handleManageBilling} variant="outline" className="w-full bg-white/10 border-white/20 text-white">
-                      Управление оплатой
-                    </Button>
-                  </div>
+                   <div className="text-sm text-white/60">Ваша подписка активна.</div>
                 </>
               ) : (
                 <>

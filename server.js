@@ -63,6 +63,7 @@ app.use('/api/invoices', require('./routes/invoiceRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/content', require('./routes/contentRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
 // --- Error Handling ---
 // 404 Not Found handler

@@ -1,9 +1,13 @@
-// Mock implementation of functions
+import apiClient from './apiClient';
 
 export const createCheckoutSession = async (options) => {
-  console.log('[Mock API] createCheckoutSession called with:', options);
-  alert('Checkout is currently disabled.');
-  return Promise.resolve({ url: '#' });
+  try {
+    const response = await apiClient.post('/payments/create', options);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    throw error;
+  }
 };
 
 export const createBillingPortalSession = async (options) => {

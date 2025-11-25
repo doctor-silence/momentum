@@ -85,6 +85,18 @@ User.init({
     defaultValue: 5,
     allowNull: false,
   },
+  subscription_provider: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  subscription_id: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  subscription_status: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   sequelize,
   modelName: 'User',
