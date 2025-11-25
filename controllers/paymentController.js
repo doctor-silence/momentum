@@ -42,7 +42,7 @@ const handleWebhook = async (req, res) => {
   const { event, object: payment } = req.body;
 
   try {
-    if (event === 'payment.succeeded') {
+    if (event === 'payment.succeeded' || event === 'payment.waiting_for_capture') {
       const userId = payment.metadata.userId;
       const user = await User.findByPk(userId);
 
@@ -58,7 +58,7 @@ const handleWebhook = async (req, res) => {
 
     res.status(200).send();
   } catch (error) {
-    console.error(error);
+    console.error('Error processing Yookassa webhook:', error);
     res.status(500).send('Server error');
   }
 };
