@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
@@ -12,7 +12,7 @@ import {
   Crown,
   Menu,
   CreditCard,
-  MessageSquare 
+  MessageSquare
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
-import ScrollToTop from "@/components/common/ScrollToTop";
 
 const navigationItems = [
   { title: "Панель управления", url: createPageUrl("Dashboard"), icon: Home, description: "Командный центр" },
@@ -45,13 +44,28 @@ const navigationItems = [
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { pathname, hash } = location;
+
+  useEffect(() => {
+    // This hook now handles all scrolling behavior
+    if (hash) {
+      const element = document.getElementById(hash.substring(1));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      // This replaces the functionality of the old ScrollToTop component
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+    // Dependency array ensures this runs on any location change
+  }, [pathname, hash]);
+
 
   // No layout for auth pages
   if (["Login", "Register", "AuthCallback", "PaymentSuccess"].includes(currentPageName)) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <ErrorBoundary>
-          <ScrollToTop />
           {children}
         </ErrorBoundary>
       </div>
@@ -80,7 +94,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-4">
               <Link to="/#features" className="text-white/80 hover:text-white text-sm">Возможности</Link>
               <Link to="/#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>
-              <Link to="/lead-magnet" className="text-white/80 hover:text-white text-sm">Чек-лист</Link>
+              <Link to="/lead-magnet" className="text-white/80 hover:text-white text-sm">Ускорьте Развитие</Link>
               <button onClick={() => document.dispatchEvent(new CustomEvent('openPricingModal'))} className="text-white/80 hover:text-white text-sm">Тарифы</button>
               <button onClick={() => navigate('/login')} className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 text-sm">
                 Войти
@@ -90,7 +104,6 @@ export default function Layout({ children, currentPageName }) {
         </header>
         <main id="main-content" tabIndex={-1} className="relative z-10" role="main">
           <ErrorBoundary>
-            <ScrollToTop />
             {children}
           </ErrorBoundary>
         </main>
@@ -219,7 +232,6 @@ export default function Layout({ children, currentPageName }) {
           </header>
           <div className="flex-1 overflow-auto relative">
             <ErrorBoundary>
-              <ScrollToTop />
               {children}
             </ErrorBoundary>
           </div>

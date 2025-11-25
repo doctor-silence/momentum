@@ -1,6 +1,7 @@
 const { sequelize } = require('../config/db');
 const User = require('./User');
 const Content = require('./Content');
+const PromoCode = require('./PromoCode'); // Import the new PromoCode model
 
 // --- Define Associations ---
 
@@ -21,6 +22,7 @@ const db = {
   sequelize,
   User,
   Content,
+  PromoCode, // Add PromoCode to the db object
 };
 
 // Function to sync all models
