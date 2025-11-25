@@ -23,7 +23,7 @@ router.get(
   passport.authenticate('google', { failureRedirect: '/login', session: false }),
   (req, res) => {
     // On successful authentication, user object is attached to req by Passport
-    const token = generateToken(req.user._id);
+    const token = generateToken(req.user.id);
     // Redirect to a frontend route that can handle the token
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/success?token=${token}`);
   }

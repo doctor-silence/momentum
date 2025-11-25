@@ -25,22 +25,6 @@ export default function PaymentSuccess() {
     loadProfile();
   }, []);
 
-  const handleActivate = async () => {
-    try {
-        const { data: updatedUser } = await apiClient.put('/users/me/activate-subscription');
-        await loadProfile(); // Reload profile to get updated status
-        
-        // Update localStorage with the fresh user profile
-        const existingProfile = JSON.parse(localStorage.getItem('userProfile')) || {};
-        localStorage.setItem('userProfile', JSON.stringify({ ...existingProfile, ...updatedUser }));
-
-        alert('Подписка активирована!');
-    } catch (error) {
-        console.error('Error activating subscription:', error);
-        alert('Не удалось активировать подписку.');
-    }
-  };
-
   return (
     <div className="min-h-screen p-4 lg:p-8">
       <div className="max-w-3xl mx-auto">
@@ -74,13 +58,6 @@ export default function PaymentSuccess() {
                   <Home className="w-4 h-4 mr-2" /> Панель управления
                 </Button>
               </Link>
-            </div>
-
-            <div className="text-xs text-white/60 text-center p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-                <p className="font-bold text-red-300/90 mb-2">Для информации:</p>
-                <p>Поскольку приложение запущено локально, сервер не может автоматически получать уведомления от Юкассы об успешной оплате (веб-хуки).</p>
-                <p>Нажмите эту кнопку, чтобы вручную активировать подписку для тестирования.</p>
-                <Button onClick={handleActivate} className="mt-4" variant="destructive">Активировать подписку</Button>
             </div>
 
             <div className="text-xs text-white/60 text-center">

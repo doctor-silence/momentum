@@ -13,19 +13,19 @@ module.exports = function(passport) {
         const newUser = {
           googleId: profile.id,
           email: profile.emails[0].value,
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
+          firstName: profile.name.givenName || profile.emails[0].value.split('@')[0],
+          lastName: profile.name.familyName || ' ',
         };
 
         try {
-          let user = await User.findOne({ googleId: profile.id });
+          let user = await User.findOne({ where: { googleId: profile.id } });
 
           if (user) {
             done(null, user);
           } else {
             // If user exists with this email but not googleId, you might want to link them.
             // For simplicity, we'll create a new user or find by email if that's preferred.
-            user = await User.findOne({ email: newUser.email });
+            user = await User.findOne({ where: { email: newUser.email } });
             if (user) {
               // User exists, but not with Google. You could link accounts here.
               // For now, we'll just log them in.
@@ -51,7 +51,7 @@ module.exports = function(passport) {
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await User.findById(id);
+      const user = await User.findByPk(id);
       done(null, user);
     } catch (err) {
       done(err, null);
