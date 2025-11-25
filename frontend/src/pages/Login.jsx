@@ -42,6 +42,10 @@ export default function Login() {
     window.location.href = 'http://localhost:5001/api/auth/google';
   };
 
+  const handleVkSignIn = () => {
+    window.location.href = 'http://localhost:5001/api/auth/vk';
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <Card className="w-full max-w-md bg-white/10 backdrop-blur-xl border-white/20 text-white">
@@ -102,9 +106,11 @@ export default function Login() {
             </div>
           </div>
           
-          <Button variant="outline" className="w-full bg-transparent border-white/20 hover:bg-white/10" onClick={handleGoogleSignIn}>
-            Google
-          </Button>
+          <div className="space-y-2">
+            <Button variant="outline" className="w-full bg-transparent border-white/20 hover:bg-white/10" onClick={handleGoogleSignIn}>
+              Google
+            </Button>
+          </div>
 
           <p className="mt-4 text-center text-sm text-white/70">
             Нет аккаунта?{" "}

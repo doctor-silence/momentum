@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-4">
               <Link to="#features" className="text-white/80 hover:text-white text-sm">Возможности</Link>
               <Link to="#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>
-              <Link to={createPageUrl("Pricing")} className="text-white/80 hover:text-white text-sm">Тарифы</Link>
+              <button onClick={() => document.dispatchEvent(new CustomEvent('openPricingModal'))} className="text-white/80 hover:text-white text-sm">Тарифы</button>
               <button onClick={() => navigate('/login')} className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 text-sm">
                 Войти
               </button>

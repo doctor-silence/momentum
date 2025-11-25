@@ -18,6 +18,9 @@ User.init({
   googleId: {
     type: DataTypes.STRING,
   },
+  vkId: {
+    type: DataTypes.STRING,
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,

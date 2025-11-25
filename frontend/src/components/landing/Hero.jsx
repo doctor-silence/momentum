@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User as UserEntity } from "@/api/entities";
+// import { User as UserEntity } from "@/api/entities"; // Not needed anymore
 
-export default function Hero() {
-  const handleSignIn = async () => {
-    await UserEntity.loginWithRedirect(window.location.origin + createPageUrl("Dashboard"));
-  };
+export default function Hero({ onOpenPricingModal }) {
+  // const handleSignIn = async () => { // Not needed anymore
+  //   await UserEntity.loginWithRedirect(window.location.origin + createPageUrl("Dashboard"));
+  // };
 
   return (
     <section className="relative overflow-hidden">
@@ -27,19 +27,18 @@ export default function Hero() {
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
-            onClick={handleSignIn}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-6 rounded-xl"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Начать
-          </Button>
-          <Link to={createPageUrl("Pricing")}>
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-              Посмотреть тарифы
-              <ArrowRight className="w-4 h-4 ml-2" />
+          <Link to={createPageUrl("Register")}>
+            <Button
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-6 rounded-xl"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Начать
             </Button>
           </Link>
+          <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={onOpenPricingModal}>
+            Посмотреть тарифы
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-3 text-white/70 text-sm">

@@ -14,7 +14,12 @@ const formSchema = z.object({
   firstName: z.string().min(2, "Имя должно содержать не менее 2 символов."),
   lastName: z.string().min(2, "Фамилия должна содержать не менее 2 символов."),
   email: z.string().email("Неверный формат email."),
-  password: z.string().min(8, "Пароль должен содержать не менее 8 символов."),
+  password: z.string()
+    .min(8, "Пароль должен содержать не менее 8 символов.")
+    .regex(/[a-z]/, "Пароль должен содержать хотя бы одну строчную букву.")
+    .regex(/[A-Z]/, "Пароль должен содержать хотя бы одну заглавную букву.")
+    .regex(/[0-9]/, "Пароль должен содержать хотя бы одну цифру.")
+    .regex(/[^a-zA-Z0-9]/, "Пароль должен содержать хотя бы один специальный символ."),
 });
 
 export default function Register() {
@@ -55,6 +60,10 @@ export default function Register() {
   const handleGoogleSignIn = () => {
     // Redirect the browser to the backend's Google auth route
     window.location.href = 'http://localhost:5001/api/auth/google';
+  };
+
+  const handleVkSignIn = () => {
+    window.location.href = 'http://localhost:5001/api/auth/vk';
   };
 
   return (
@@ -144,9 +153,11 @@ export default function Register() {
               </span>
             </div>
           </div>
-          <Button variant="outline" className="w-full bg-transparent border-white/20 hover:bg-white/10" onClick={handleGoogleSignIn}>
-            Google
-          </Button>
+          <div className="space-y-2">
+            <Button variant="outline" className="w-full bg-transparent border-white/20 hover:bg-white/10" onClick={handleGoogleSignIn}>
+              Google
+            </Button>
+          </div>
            <p className="mt-4 text-center text-sm text-white/70">
             Уже есть аккаунт?{" "}
             <Link to="/login" className="font-semibold text-purple-400 hover:underline">

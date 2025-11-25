@@ -29,4 +29,19 @@ router.get(
   }
 );
 
+// @desc    Auth with VK
+// @route   GET /api/auth/vk
+router.get('/vk', passport.authenticate('vkontakte', { scope: ['email'] }));
+
+// @desc    VK auth callback
+// @route   GET /api/auth/vk/callback
+router.get(
+  '/vk/callback',
+  passport.authenticate('vkontakte', { failureRedirect: '/login', session: false }),
+  (req, res) => {
+    const token = generateToken(req.user.id);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/success?token=${token}`);
+  }
+);
+
 module.exports = router;
