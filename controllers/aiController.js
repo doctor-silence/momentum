@@ -17,7 +17,10 @@ const generateContent = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  if (user.freeGenerationsLeft <= 0) {
+  // A user can generate content if they have unlimited generations OR if they have free generations left.
+  const canGenerate = user.has_unlimited_generations || user.freeGenerationsLeft > 0;
+
+  if (!canGenerate) {
     res.status(403);
     throw new Error('Вы исчерпали бесплатные генерации контента. Пожалуйста, приобретите подписку.');
   }
@@ -73,9 +76,11 @@ The JSON object you return must match this schema: { "type": "object", "properti
       }
     );
 
-    // Decrement free generations and save user
-    user.freeGenerationsLeft -= 1;
-    await user.save();
+    // Decrement free generations only if the user is not subscribed
+    if (!user.has_unlimited_generations) {
+      user.freeGenerationsLeft -= 1;
+      await user.save();
+    }
 
     // The response from the AI is a stringified JSON, so we need to parse it.
     const generatedJson = JSON.parse(response.data.choices[0].message.content);

@@ -40,7 +40,7 @@ function _getCurrentPage(url) {
     if (url.toLowerCase().startsWith('/auth')) return 'AuthCallback';
     
     if (url.endsWith('/')) url = url.slice(0, -1);
-    let urlLastPart = url.split('/').pop().split('?')[0];
+    let urlLastPart = url.split('/').pop().split('?')[0].replace(/-/g, '');
     const pageName = Object.keys(PAGES).find(page => page.toLowerCase() === urlLastPart.toLowerCase());
     return pageName || 'Dashboard';
 }
@@ -64,7 +64,7 @@ function AppWithLayout() {
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/paymentsuccess" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                 <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

@@ -139,6 +139,7 @@ const getMe = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations
+      subscription_status: user.subscription_status,
       industry: user.industry,
       core_message: user.core_message,
       brand_voice_tone: user.brand_voice_tone,
@@ -220,11 +221,49 @@ const getUsers = asyncHandler(async (req, res) => {
     res.json(users);
 });
 
+// @desc    Activate subscription manually
+// @route   PUT /api/users/me/activate-subscription
+// @access  Private
+const activateSubscription = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  user.subscription_status = 'active';
+  user.has_unlimited_generations = true;
+  await user.save();
+
+  res.json({
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    freeGenerationsLeft: user.freeGenerationsLeft,
+    subscription_status: user.subscription_status,
+    has_unlimited_generations: user.has_unlimited_generations,
+    industry: user.industry,
+    core_message: user.core_message,
+    brand_voice_tone: user.brand_voice_tone,
+    writing_style_description: user.writing_style_description,
+    monthly_content_goal: user.monthly_content_goal,
+    target_audiences: user.target_audiences,
+    content_pillars: user.content_pillars,
+    goals_primary_goal: user.goals_primary_goal,
+    preferred_platforms: user.preferred_platforms,
+  });
+});
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
   getMe,
-  updateMe, // Export new function
+  updateMe,
   getUsers,
+  activateSubscription,
 };

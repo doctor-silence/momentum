@@ -50,6 +50,7 @@ const handleWebhook = async (req, res) => {
         user.subscription_provider = 'yookassa';
         user.subscription_id = payment.id;
         user.subscription_status = 'active';
+        user.has_unlimited_generations = true;
         await user.save();
       }
     }

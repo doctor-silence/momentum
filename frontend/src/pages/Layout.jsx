@@ -47,7 +47,7 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
 
   // No layout for auth pages
-  if (["Login", "Register", "AuthCallback"].includes(currentPageName)) {
+  if (["Login", "Register", "AuthCallback", "PaymentSuccess"].includes(currentPageName)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <ErrorBoundary>

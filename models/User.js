@@ -85,6 +85,11 @@ User.init({
     defaultValue: 5,
     allowNull: false,
   },
+  has_unlimited_generations: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
   subscription_provider: {
     type: DataTypes.STRING,
     allowNull: true,
