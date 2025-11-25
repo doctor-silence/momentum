@@ -119,6 +119,7 @@ export default function Generate() {
     setIsLoading(true);
     setGeneratedContent(null);
     try {
+      // Corrected check: Block if user has no unlimited generations AND no free generations left.
       if (userProfile.freeGenerationsLeft <= 0) {
         setIsSubscriptionModalOpen(true);
         setIsLoading(false);

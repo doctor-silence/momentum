@@ -18,7 +18,7 @@ const generateContent = asyncHandler(async (req, res) => {
   }
 
   // A user can generate content if they have unlimited generations OR if they have free generations left.
-  const canGenerate = user.has_unlimited_generations || user.freeGenerationsLeft > 0;
+  const canGenerate = user.has_unlimited_generations === true || user.freeGenerationsLeft > 0;
 
   if (!canGenerate) {
     res.status(403);

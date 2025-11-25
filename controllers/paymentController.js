@@ -51,6 +51,7 @@ const handleWebhook = async (req, res) => {
         user.subscription_id = payment.id;
         user.subscription_status = 'active';
         user.has_unlimited_generations = true;
+        user.freeGenerationsLeft = 1000; // Set a large number for effectively unlimited generations
         await user.save();
       }
     }

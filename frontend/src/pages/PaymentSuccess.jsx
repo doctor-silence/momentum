@@ -27,8 +27,13 @@ export default function PaymentSuccess() {
 
   const handleActivate = async () => {
     try {
-        await apiClient.put('/users/me/activate-subscription');
+        const { data: updatedUser } = await apiClient.put('/users/me/activate-subscription');
         await loadProfile(); // Reload profile to get updated status
+        
+        // Update localStorage with the fresh user profile
+        const existingProfile = JSON.parse(localStorage.getItem('userProfile')) || {};
+        localStorage.setItem('userProfile', JSON.stringify({ ...existingProfile, ...updatedUser }));
+
         alert('Подписка активирована!');
     } catch (error) {
         console.error('Error activating subscription:', error);

@@ -67,6 +67,11 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   if (await user.comparePassword(password)) {
+    // Safeguard: If user has unlimited generations, ensure they have the generation credits.
+    if (user.has_unlimited_generations === true) {
+      user.freeGenerationsLeft = 1000;
+    }
+
     res.json({
       id: user.id,
       firstName: user.firstName,
@@ -132,6 +137,11 @@ const getMe = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    // Safeguard: If user has unlimited generations, ensure they have the generation credits.
+    if (user.has_unlimited_generations === true) {
+      user.freeGenerationsLeft = 1000;
+    }
+
     res.json({
       id: user.id,
       firstName: user.firstName,
@@ -235,6 +245,7 @@ const activateSubscription = asyncHandler(async (req, res) => {
 
   user.subscription_status = 'active';
   user.has_unlimited_generations = true;
+  user.freeGenerationsLeft = 1000; // Set a large number for effectively unlimited generations
   await user.save();
 
   res.json({
@@ -243,7 +254,7 @@ const activateSubscription = asyncHandler(async (req, res) => {
     lastName: user.lastName,
     email: user.email,
     role: user.role,
-    freeGenerationsLeft: user.freeGenerationsLeft,
+    freeGenerationsLeft: user.freeGenerationsLeft, // Include updated free generations
     subscription_status: user.subscription_status,
     has_unlimited_generations: user.has_unlimited_generations,
     industry: user.industry,
