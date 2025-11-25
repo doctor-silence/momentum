@@ -16,6 +16,7 @@ import Agents from "./Agents";
 import Login from "./Login.jsx";
 import Register from "./Register.jsx";
 import AuthCallback from "./AuthCallback.jsx";
+import LeadMagnet from "./LeadMagnet.jsx";
 
 // --- Auth Helper & Protected Route ---
 const isAuthenticated = () => !!localStorage.getItem('authToken');
@@ -30,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
 
 // --- Page Name Logic ---
 const PAGES = {
-    Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback
+    Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback, LeadMagnet
 };
 
 function _getCurrentPage(url) {
@@ -38,6 +39,7 @@ function _getCurrentPage(url) {
     if (url.toLowerCase() === '/login') return 'Login';
     if (url.toLowerCase() === '/register') return 'Register';
     if (url.toLowerCase().startsWith('/auth')) return 'AuthCallback';
+    if (url.toLowerCase() === '/lead-magnet') return 'LeadMagnet';
     
     if (url.endsWith('/')) url = url.slice(0, -1);
     let urlLastPart = url.split('/').pop().split('?')[0].replace(/-/g, '');
@@ -59,6 +61,7 @@ function AppWithLayout() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth/success" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/lead-magnet" element={<LeadMagnet />} />
                 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

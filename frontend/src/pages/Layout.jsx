@@ -49,7 +49,7 @@ export default function Layout({ children, currentPageName }) {
   // No layout for auth pages
   if (["Login", "Register", "AuthCallback", "PaymentSuccess"].includes(currentPageName)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <ErrorBoundary>
           <ScrollToTop />
           {children}
@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Special marketing layout for the public Landing page (header, but no sidebar)
-  if (currentPageName === "Landing") {
+  if (["Landing", "LeadMagnet"].includes(currentPageName)) {
     return (
       <div className="min-h-screen relative">
         {/* Global Background - mark as decorative and click-through */}
@@ -78,8 +78,9 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-white font-semibold">MessageAmplifier</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link to="#features" className="text-white/80 hover:text-white text-sm">Возможности</Link>
-              <Link to="#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>
+              <Link to="/#features" className="text-white/80 hover:text-white text-sm">Возможности</Link>
+              <Link to="/#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>
+              <Link to="/lead-magnet" className="text-white/80 hover:text-white text-sm">Чек-лист</Link>
               <button onClick={() => document.dispatchEvent(new CustomEvent('openPricingModal'))} className="text-white/80 hover:text-white text-sm">Тарифы</button>
               <button onClick={() => navigate('/login')} className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 text-sm">
                 Войти
