@@ -1,21 +1,72 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function LeadMagnet() {
+  const navigate = useNavigate();
+
+  const handleGetPromoCode = () => {
+    navigate('/register');
+  };
+
+  const text = "Ускорьте Развитие Бизнеса: Получите Скидку 30% на AI Контент".split(" ");
+
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 * i },
+    }),
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 20,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
+
   return (
     <>
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
         <div className="relative max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            Ускорьте Развитие Бизнеса: Получите Скидку 30% на AI Контент
-          </h1>
+          <motion.h1
+            className="text-4xl md:text-5xl font-extrabold text-white tracking-tight"
+            variants={container}
+            initial="hidden"
+            animate="visible"
+          >
+            {text.map((word, index) => (
+              <motion.span
+                key={index}
+                variants={child}
+                className="inline-block mr-2" // Added margin-right for word separation
+              >
+                {word}
+              </motion.span>
+            ))}
+          </motion.h1>
           <p className="mt-4 text-white/80 text-lg max-w-2xl mx-auto">
-            Введите ваш email, чтобы получить эксклюзивный **Промокод на скидку 30%** на первый месяц использования Momentum Amplify. Начните создавать конверсионный контент уже сегодня.
+            Получите эксклюзивный **Промокод на скидку 30%** на первый месяц использования Momentum Amplify. Начните создавать конверсионный контент уже сегодня.
           </p>
           <form className="mt-8 max-w-lg mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input type="email" placeholder="Введите ваш email" required className="flex-grow px-4 py-3 rounded-lg bg-white/10 border-white/20 text-white placeholder-white/50 focus:ring-2 focus:ring-amber-400 focus:outline-none" />
-              <button type="submit" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-3 rounded-lg">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-3 rounded-lg">
                 ПОЛУЧИТЬ ПРОМОКОД
               </button>
             </div>
@@ -87,9 +138,8 @@ export default function LeadMagnet() {
             Получите ваш персональный промокод и сделайте первый шаг к автоматизации SMM и росту вашего бизнеса.
           </p>
           <form className="mt-8 max-w-lg mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input type="email" placeholder="Ваш лучший email" required className="flex-grow px-4 py-3 rounded-lg bg-white/10 border-white/20 text-white placeholder-white/50 focus:ring-2 focus:ring-amber-400 focus:outline-none" />
-              <button type="submit" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-8 py-4 rounded-lg text-lg">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-8 py-4 rounded-lg text-lg">
                 ПОЛУЧИТЬ ПРОМОКОД НА СКИДКУ 30%
               </button>
             </div>

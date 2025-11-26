@@ -127,7 +127,7 @@ export default function PricingModal({ isOpen, onClose }) {
                       </>
                     )}
                   </Button>
-                  <div className="text-xs text-white/50">Отмена в любое время</div>
+
                 </>
               )}
             </div>

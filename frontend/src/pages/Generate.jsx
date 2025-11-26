@@ -164,8 +164,12 @@ export default function Generate() {
         }));
         // Also update localStorage
         const savedProfile = JSON.parse(localStorage.getItem('userProfile'));
-        localStorage.setItem('userProfile', JSON.stringify({ ...savedProfile, freeGenerationsLeft: result.freeGenerationsLeft }));
-      }
+                  localStorage.setItem('userProfile', JSON.stringify({
+                    ...savedProfile,
+                    freeGenerationsLeft: result.freeGenerationsLeft,
+                    subscription_status: result.subscription_status,
+                    has_unlimited_generations: result.has_unlimited_generations,
+                  }));      }
 
     } catch (error) {
       console.error("Error generating content:", error);

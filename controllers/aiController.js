@@ -87,7 +87,12 @@ The JSON object you return must match this schema: { "type": "object", "properti
       },
     }).catch(err => console.error('Failed to log content generation action:', err));
 
-    res.json({ ...generatedJson, freeGenerationsLeft: user.freeGenerationsLeft });
+    res.json({
+      ...generatedJson,
+      freeGenerationsLeft: user.freeGenerationsLeft,
+      subscription_status: user.subscription_status, // Include subscription status
+      has_unlimited_generations: user.has_unlimited_generations // Include unlimited generations flag
+    });
 
   } catch (error) {
     console.error('Error calling DeepSeek API:', error.response ? error.response.data : error.message);
@@ -163,13 +168,8 @@ const chatWithAgent = asyncHandler(async (req, res) => {
   }
 
   const systemPrompts = {
-    content_strategist: 'You are an expert content strategist. Format your responses using Markdown for paragraphs, headings, bold text, and lists.',
+    content_strategist: 'You are an expert content strategist who generates viral content ideas. Format your responses using Markdown for paragraphs, headings, bold text, and lists.',
     default: 'You are a helpful assistant.'
-  };
-
-  const systemMessage = {
-    role: 'system',
-    content: systemPrompts[agentName] || systemPrompts.default
   };
 
   const messages = [systemMessage, ...history, { role: 'user', content: prompt }];

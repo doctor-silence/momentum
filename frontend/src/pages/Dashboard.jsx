@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import StatsGrid from "@/components/dashboard/StatsGrid";
-import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import RecentContent from "@/components/dashboard/RecentContent";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -68,14 +67,13 @@ export default function Dashboard() {
       <WelcomeCard />
       <StatsGrid stats={stats} isLoading={isLoading} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <PerformanceChart />
-        </div>
         <div className="lg:col-span-1">
           <QuickActions />
         </div>
+        <div className="lg:col-span-2">
+          <RecentContent content={content} isLoading={isLoading} />
+        </div>
       </div>
-      <RecentContent content={content} isLoading={isLoading} />
 
       {/* Promo Code Modal */}
       <Dialog open={isPromoModalOpen} onOpenChange={setIsPromoModalOpen}>

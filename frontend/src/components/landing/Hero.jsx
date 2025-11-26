@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
 
 // import { User as UserEntity } from "@/api/entities"; // Not needed anymore
 
@@ -10,6 +11,37 @@ export default function Hero({ onOpenPricingModal }) {
   // const handleSignIn = async () => { // Not needed anymore
   //   await UserEntity.loginWithRedirect(window.location.origin + createPageUrl("Dashboard"));
   // };
+
+  const text = "Превратите ваше сообщение в движение".split(" ");
+
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 * i },
+    }),
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 20,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
 
   return (
     <section className="relative overflow-hidden">
@@ -20,9 +52,22 @@ export default function Hero({ onOpenPricingModal }) {
           <Zap className="w-4 h-4" />
           <span className="text-sm">Momentum Amplify</span>
         </div>
-        <h1 className="mt-6 text-4xl md:text-6xl font-extrabold text-white tracking-tight">
-          Превратите ваше сообщение в движение
-        </h1>
+        <motion.h1
+          className="mt-6 text-4xl md:text-6xl font-extrabold text-white tracking-tight"
+          variants={container}
+          initial="hidden"
+          animate="visible"
+        >
+          {text.map((word, index) => (
+            <motion.span
+              key={index}
+              variants={child}
+              className="inline-block mr-2" // Added margin-right for word separation
+            >
+              {word}
+            </motion.span>
+          ))}
+        </motion.h1>
         <p className="mt-4 text-white/80 text-lg md:text-xl max-w-3xl mx-auto">
           Создавайте, планируйте и анализируйте контент, который развивает ваш бизнес — без лишних сложностей.
         </p>

@@ -62,18 +62,18 @@ const Dashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">MRR</CardTitle>
+            <CardTitle className="text-sm font-medium">Мес. выручка</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${data?.mrr.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{data?.mrr.toFixed(2)} ₽</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ARR</CardTitle>
+            <CardTitle className="text-sm font-medium">Год. выручка</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${data?.arr.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{data?.arr.toFixed(2)} ₽</div>
           </CardContent>
         </Card>
       </div>

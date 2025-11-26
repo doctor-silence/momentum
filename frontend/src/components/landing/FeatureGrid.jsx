@@ -13,7 +13,7 @@ const FEATURES = [
 
 export default function FeatureGrid() {
   return (
-    <section id="features" className="relative py-16">
+    <section className="relative py-16">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/40" />
       <div className="relative max-w-6xl mx-auto px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-white text-center">Всё, что вам нужно</h2>

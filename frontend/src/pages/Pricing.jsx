@@ -179,7 +179,7 @@ export default function Pricing() {
                       </>
                     )}
                   </Button>
-                  <div className="text-xs text-white/50">Отмена в любое время</div>
+                  
                 </>
               )}
             </div>
