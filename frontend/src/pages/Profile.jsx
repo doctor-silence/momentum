@@ -93,7 +93,21 @@ export default function Profile() {
 
       const profiles = await UserProfile.filter({ created_by: currentUser.email });
       if (profiles.length > 0) {
-        setUserProfile(profiles[0]);
+        setUserProfile(prevProfile => {
+          const fetchedProfile = profiles[0];
+          return {
+            ...prevProfile, // Start with current default/initial state
+            ...fetchedProfile, // Overlay with fetched data
+            brand_voice: {
+              ...prevProfile.brand_voice,
+              ...(fetchedProfile.brand_voice || {}) // Ensure brand_voice is an object
+            },
+            goals: {
+              ...prevProfile.goals,
+              ...(fetchedProfile.goals || {}) // Ensure goals is an object
+            }
+          };
+        });
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
@@ -258,7 +272,7 @@ export default function Profile() {
                       value={userProfile.industry} 
                       onValueChange={(value) => setUserProfile(prev => ({ ...prev, industry: value }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white data-[placeholder]:text-white">
                         <SelectValue placeholder="Выберите вашу отрасль" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
@@ -284,7 +298,7 @@ export default function Profile() {
                         goals: { ...prev.goals, primary_goal: value }
                       }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white backdrop-blur-sm placeholder:text-white data-[placeholder]:text-white">
                         <SelectValue placeholder="Выберите основную цель" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-white/20 backdrop-blur-xl">
@@ -351,7 +365,7 @@ export default function Profile() {
                     <Input
                       type="number"
                       value={userProfile.goals.monthly_content_target}
-                      onChange={(e) => setUserProfile(prev => ({ 
+                      onChange={(e) => setUserProfile(prev => ({
                         ...prev, 
                         goals: { ...prev.goals, monthly_content_target: parseInt(e.target.value) || 0 }
                       }))}

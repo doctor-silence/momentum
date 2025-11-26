@@ -83,14 +83,13 @@ export default function Layout({ children, currentPageName }) {
         
         <header className="relative z-20 px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-xl" role="banner">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-white font-semibold">MessageAmplifier</span>
-            </div>
+              <span className="text-white font-semibold">Momentum Amplify</span>
+            </Link>
             <div className="flex items-center gap-4">
-              <Link to="/#features" className="text-white/80 hover:text-white text-sm">Возможности</Link>
               <Link to="/#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>
               <Link to="/lead-magnet" className="text-white/80 hover:text-white text-sm">Ускорьте Развитие</Link>
               <button onClick={() => document.dispatchEvent(new CustomEvent('openPricingModal'))} className="text-white/80 hover:text-white text-sm">Тарифы</button>
@@ -133,7 +132,7 @@ export default function Layout({ children, currentPageName }) {
         
         <Sidebar className="w-72 border-r border-white/10 bg-gradient-to-b from-slate-950/90 via-slate-900/85 to-indigo-900/80 text-white" role="navigation" aria-label="Primary">
           <SidebarHeader className="border-b border-white/10 p-6">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
                   <Zap className="w-6 h-6 text-white" />
@@ -143,10 +142,10 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <div>
-                <h2 className="font-bold text-white text-lg">MessageAmplifier</h2>
+                <h2 className="font-bold text-white text-lg">Momentum Amplify</h2>
                 <p className="text-xs text-white/80">Pro</p>
               </div>
-            </div>
+            </Link>
           </SidebarHeader>
           <SidebarContent className="p-4 text-white">
             <SidebarGroup>
@@ -224,8 +223,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-lg font-bold text-white">MessageAmplifier</h1>
-              </div>
+                                  <h1 className="text-lg font-bold text-white">Momentum Amplify</h1>              </div>
             </div>
           </header>
           <div className="flex-1 overflow-auto relative">

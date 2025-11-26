@@ -24,12 +24,12 @@ export default function WelcomeCard({ user }) {
               <div className="flex items-center justify-center lg:justify-start gap-2">
                 <Crown className="w-6 h-6 text-amber-400" />
                 <h2 className="text-2xl lg:text-3xl font-bold text-white">
-                  Добро пожаловать в MessageAmplifier Pro!
+                  Добро пожаловать на Momentum Amplify!
                 </h2>
               </div>
               
               <p className="text-white/80 text-lg max-w-2xl">
-                Привет, {user?.full_name?.split(' ')[0]}! Вы готовы изменить то, как мир видит ваше сообщение. 
+                Привет {user?.full_name?.split(' ')[0]}! Вы готовы изменить то, как мир видит ваше сообщение. 
                 Давайте начнём с определения вашей ключевой трансформационной идеи и настройки ваших контентных суперспособностей.
               </p>
               
