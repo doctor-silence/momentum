@@ -105,6 +105,14 @@ User.init({
     type: DataTypes.STRING,
     allowNull: true,
   },
+  subscriptionStartDate: { // New field for subscription start date
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  subscriptionEndDate: { // New field for subscription end date
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   promoCodeId: { // New field for promo code
     type: DataTypes.UUID,
     allowNull: true,
@@ -116,6 +124,8 @@ User.init({
 }, {
   sequelize,
   modelName: 'User',
+  freezeTableName: true, // Prevent Sequelize from pluralizing the table name
+  tableName: 'Users',    // Explicitly set the table name to 'Users'
   hooks: {
     beforeCreate: async (user) => {
       if (user.password) {

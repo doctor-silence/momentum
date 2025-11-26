@@ -11,6 +11,7 @@ const connectDB = require('./config/db');
 const { notFound } = require('./middleware/notFound');
 const { errorHandler } = require('./middleware/errorHandler');
 const { scheduleOverdueCheck } = require('./jobs/invoiceJobs');
+const { initSubscriptionJobs } = require('./jobs/subscriptionJobs'); // Import subscription jobs
 
 // --- Initializations ---
 // Passport config
@@ -79,4 +80,6 @@ const PORT = 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  scheduleOverdueCheck(); // Schedule the overdue check for invoices
+  initSubscriptionJobs(); // Initialize subscription expiry job
 });
