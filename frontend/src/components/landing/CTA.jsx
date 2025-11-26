@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Crown } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import PromoCodeGenerator from "./PromoCodeGenerator"; // Import the new component
 
 // import { User as UserEntity } from "@/api/entities"; // Not needed anymore
 
@@ -11,10 +10,6 @@ export default function CTA({ onOpenPricingModal }) {
   // const handleStart = async () => { // Not needed anymore
   //   await UserEntity.loginWithRedirect(window.location.origin + createPageUrl("Dashboard"));
   // };
-
-  const handleDivClick = () => {
-    console.log("Click registered on PromoCodeGenerator container div.");
-  };
 
   return (
     <section id="pricing" className="py-16">
@@ -36,11 +31,6 @@ export default function CTA({ onOpenPricingModal }) {
             <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={onOpenPricingModal}>
               Посмотреть полный план
             </Button>
-          </div>
-          {/* Add the PromoCodeGenerator component here */}
-          <div className="mt-8" onClick={handleDivClick}> {/* Added onClick here */}
-            <h4 className="text-white text-xl font-semibold mb-4">Хотите промокод?</h4>
-            <PromoCodeGenerator /> 
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+
 // import { User as UserEntity } from "@/api/entities"; // Not needed anymore
 
 export default function Hero({ onOpenPricingModal }) {

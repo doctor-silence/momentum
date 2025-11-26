@@ -79,10 +79,8 @@ export default function Layout({ children, currentPageName }) {
         {/* Global Background - mark as decorative and click-through */}
         <div aria-hidden="true" className="decorative-overlay gradient-mask fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 pointer-events-none" />
         <div aria-hidden="true" className="decorative-overlay fixed inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
-        {/* Click-through + portal z-index safety CSS */}
-        <style>{`
-          /* ... (omitting long style block for brevity, it will be re-inserted) ... */
-        `}</style>
+        {/* Click-through + portal z-index safety CSS - Removed explicit style block to avoid conflicts */}
+        
         <header className="relative z-20 px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-xl" role="banner">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -102,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
         </header>
-        <main id="main-content" tabIndex={-1} className="relative z-10" role="main">
+        <main id="main-content" tabIndex={-1} className="relative z-10" role="main" style={{ zIndex: 1, pointerEvents: 'auto' }}>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
-const { User } = require('../models'); // Import from models/index.js
+const { User, PromoCode } = require('../models'); // Import User and PromoCode models
 const generateToken = require('../utils/generateToken');
+const { generateUniqueCode } = require('./promoCodeController'); // Import the helper function
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -31,6 +32,34 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    let generatedPromoCode = null;
+    try {
+      const promoCodeString = await generateUniqueCode();
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 1); // Promo code valid for 1 month
+
+      const newPromoCode = await PromoCode.create({
+        code: promoCodeString,
+        discountType: 'percentage',
+        discountValue: 30, // Changed from 20 to 30
+        isActive: true,
+        expiresAt,
+      });
+      generatedPromoCode = {
+        code: newPromoCode.code,
+        discountType: newPromoCode.discountType,
+        discountValue: newPromoCode.discountValue,
+        expiresAt: newPromoCode.expiresAt,
+      };
+
+      user.promoCodeId = newPromoCode.id; // Add promoCodeId to the user object
+      await user.save(); // Save the user object with the assigned promoCodeId
+      console.log(`Promo code ${newPromoCode.code} (ID: ${newPromoCode.id}) generated and assigned to new user ${user.email}`);
+    } catch (promoError) {
+      console.error('Failed to generate promo code during user registration:', promoError);
+      // Continue user registration even if promo code generation fails
+    }
+
     res.status(201).json({
       id: user.id,
       firstName: user.firstName,
@@ -48,6 +77,7 @@ const registerUser = asyncHandler(async (req, res) => {
       content_pillars: user.content_pillars,
       goals_primary_goal: user.goals_primary_goal,
       preferred_platforms: user.preferred_platforms,
+      promoCode: generatedPromoCode, // Include the generated promo code in the response
     });
   } else {
     res.status(400);

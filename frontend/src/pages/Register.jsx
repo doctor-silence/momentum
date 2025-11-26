@@ -34,7 +34,12 @@ export default function Register() {
     setFormError('');
     try {
       // First, register the user
-      await apiClient.post('/auth/register', values);
+      const registerResponse = await apiClient.post('/auth/register', values);
+      const { promoCode } = registerResponse.data; // Capture the promo code
+
+      if (promoCode) {
+        localStorage.setItem('newlyRegisteredPromoCode', JSON.stringify(promoCode)); // Store promo code
+      }
 
       // Then, immediately log them in
       const { data } = await apiClient.post('/auth/login', {

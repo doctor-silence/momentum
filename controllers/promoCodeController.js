@@ -37,7 +37,7 @@ exports.generatePromoCode = async (req, res) => {
     const promoCode = await PromoCode.create({
       code,
       discountType: 'percentage', // Hardcoded for now
-      discountValue: 20,         // Hardcoded for now (20% off)
+      discountValue: 30,         // Hardcoded for now (30% off)
       isActive: true,
       expiresAt,
     });
@@ -62,3 +62,5 @@ exports.generatePromoCode = async (req, res) => {
     });
   }
 };
+
+exports.generateUniqueCode = generateUniqueCode; // Export the helper function

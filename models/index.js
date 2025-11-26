@@ -17,6 +17,9 @@ Content.belongsTo(User, {
   foreignKey: 'createdBy',
 });
 
+// A User belongs to a PromoCode (through promoCodeId on User model)
+User.belongsTo(PromoCode, { foreignKey: 'promoCodeId' });
+
 
 const db = {
   sequelize,

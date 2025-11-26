@@ -105,6 +105,14 @@ User.init({
     type: DataTypes.STRING,
     allowNull: true,
   },
+  promoCodeId: { // New field for promo code
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'PromoCodes', // This is the table name, not the model name
+      key: 'id',
+    },
+  },
 }, {
   sequelize,
   modelName: 'User',
