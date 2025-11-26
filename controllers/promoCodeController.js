@@ -26,7 +26,7 @@ const generateUniqueCode = async () => {
 // @route   POST /api/promocodes
 // @access  Public (for now, could be admin-only later)
 exports.generatePromoCode = async (req, res) => {
-  const { email } = req.body; 
+  const { email } = req.body;
   console.log('Received request to generate promo code for email:', email);
 
   try {
@@ -58,6 +58,62 @@ exports.generatePromoCode = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to generate promo code',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Apply a promo code to get a discounted price
+// @route   POST /api/promocodes/apply
+// @access  Public
+exports.applyPromoCode = async (req, res) => {
+  const { code, originalPrice } = req.body;
+  console.log('Received request to apply promo code:', code, 'to price:', originalPrice);
+
+  if (!code || !originalPrice) {
+    return res.status(400).json({ success: false, message: 'Promo code and original price are required.' });
+  }
+
+  try {
+    const promoCodeDoc = await PromoCode.findOne({ where: { code } });
+
+    if (!promoCodeDoc) {
+      return res.status(404).json({ success: false, message: 'Promo code not found.' });
+    }
+
+    if (!promoCodeDoc.isActive) {
+      return res.status(400).json({ success: false, message: 'Promo code is not active.' });
+    }
+
+    if (promoCodeDoc.expiresAt && new Date() > new Date(promoCodeDoc.expiresAt)) {
+      return res.status(400).json({ success: false, message: 'Promo code has expired.' });
+    }
+
+    let discountedPrice = originalPrice;
+
+    if (promoCodeDoc.discountType === 'percentage') {
+      discountedPrice = originalPrice * (1 - promoCodeDoc.discountValue / 100);
+    } else if (promoCodeDoc.discountType === 'fixed') {
+      discountedPrice = originalPrice - promoCodeDoc.discountValue;
+    }
+
+    // Ensure price doesn't go below zero
+    discountedPrice = Math.max(0, discountedPrice);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        originalPrice,
+        discountedPrice: parseFloat(discountedPrice.toFixed(2)),
+        discountValue: promoCodeDoc.discountValue,
+        discountType: promoCodeDoc.discountType,
+      },
+    });
+  } catch (error) {
+    console.error('Error applying promo code:', code, 'Error details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to apply promo code',
       error: error.message,
     });
   }

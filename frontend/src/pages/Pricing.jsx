@@ -4,9 +4,11 @@ import { UserProfile } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input"; // Added Input import
 import { Check, Crown, Shield, Zap, ArrowRight } from "lucide-react";
 import { createCheckoutSession } from "@/api/functions";
 import { createBillingPortalSession } from "@/api/functions"; // Added import
+import { applyPromoCodeApi } from "@/api/promocodes"; // Import applyPromoCodeApi
 
 const FEATURES = [
   "Доступ к AI-студии контента",
@@ -20,6 +22,9 @@ export default function Pricing() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState(""); // State for promo code input
+  const [originalPrice, setOriginalPrice] = useState(4700); // Initial price
+  const [discountedPrice, setDiscountedPrice] = useState(null); // State for discounted price
 
   useEffect(() => {
     loadData();
@@ -37,7 +42,8 @@ export default function Pricing() {
   const handleCheckout = async () => {
     setSubmitting(true);
     try {
-      const payment = await createCheckoutSession({ price: "4700.00", currency: "RUB" });
+      const priceToUse = discountedPrice !== null ? discountedPrice : originalPrice;
+      const payment = await createCheckoutSession({ price: priceToUse.toFixed(2), currency: "RUB" });
       if (payment?.confirmation?.confirmation_url) {
         window.location.href = payment.confirmation.confirmation_url;
       } else {
@@ -54,6 +60,28 @@ export default function Pricing() {
   const handleManageBilling = async () => {
     // This would need to be implemented separately
     alert("Billing management is not available yet.");
+  };
+
+  const applyPromoCode = async () => {
+    setSubmitting(true);
+    console.log("Attempting to apply promo code:", promoCode, "with original price:", originalPrice); // Added console.log
+    try {
+      const response = await applyPromoCodeApi(promoCode, originalPrice);
+      console.log("Promo code API response:", response); // Added console.log
+      if (response.success) {
+        setDiscountedPrice(response.data.discountedPrice);
+        console.log("Discounted price set to:", response.data.discountedPrice); // Added console.log
+      } else {
+        setDiscountedPrice(null);
+        console.log("Promo code application failed:", response.message); // Added console.log
+      }
+    } catch (error) {
+      console.error("Error applying promo code:", error);
+      setDiscountedPrice(null);
+    } finally {
+      setSubmitting(false);
+      console.log("Submitting state set to false."); // Added console.log
+    }
   };
 
   return (
@@ -89,7 +117,10 @@ export default function Pricing() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-white">4700₽<span className="text-lg text-white/70">/мес</span></div>
+              <div className="text-3xl font-bold text-white">
+                {discountedPrice !== null ? discountedPrice : originalPrice}₽
+                <span className="text-lg text-white/70">/мес</span>
+              </div>
               {isActiveStarter ? (
                 <Badge className="mt-2 bg-emerald-500/30 text-emerald-200 border-emerald-400/30">Активен</Badge>
               ) : (
@@ -119,6 +150,22 @@ export default function Pricing() {
                 </>
               ) : (
                 <>
+                  <div className="flex w-full items-center space-x-2">
+                    <Input
+                      type="text"
+                      placeholder="Промокод"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-grow bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    />
+                    <Button
+                      onClick={applyPromoCode}
+                      disabled={submitting}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4"
+                    >
+                      Применить
+                    </Button>
+                  </div>
                   <div className="text-white/80 text-center">Начните подписку сейчас</div>
                   <Button
                     onClick={handleCheckout}
