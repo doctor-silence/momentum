@@ -41,14 +41,33 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new Error('Not authorized, no token');
   }
 });
+
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && req.user.role === 'Admin') {
     next();
   } else {
     res.status(403); // Forbidden
-    throw new Error('Not authorized as an admin');
+    throw new Error('Not authorized as an Admin');
+  }
+};
+
+const moderator = (req, res, next) => {
+  if (req.user && (req.user.role === 'Admin' || req.user.role === 'Moderator')) {
+    next();
+  } else {
+    res.status(4e3); // Forbidden
+    throw new Error('Not authorized as a Moderator or Admin');
+  }
+};
+
+const support = (req, res, next) => {
+  if (req.user && (req.user.role === 'Admin' || req.user.role === 'Moderator' || req.user.role === 'Support')) {
+    next();
+  } else {
+    res.status(403); // Forbidden
+    throw new Error('Not authorized for this action');
   }
 };
 
 
-module.exports = { protect, admin };
+module.exports = { protect, admin, moderator, support };

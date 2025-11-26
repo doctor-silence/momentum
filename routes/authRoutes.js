@@ -23,7 +23,7 @@ router.get(
   passport.authenticate('google', { failureRedirect: '/login', session: false }),
   (req, res) => {
     // On successful authentication, user object is attached to req by Passport
-    const token = generateToken(req.user.id);
+    const token = generateToken(req.user.id, req.user.role);
     // Redirect to a frontend route that can handle the token
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/success?token=${token}`);
   }
@@ -39,7 +39,7 @@ router.get(
   '/vk/callback',
   passport.authenticate('vkontakte', { failureRedirect: '/login', session: false }),
   (req, res) => {
-    const token = generateToken(req.user.id);
+    const token = generateToken(req.user.id, req.user.role);
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/success?token=${token}`);
   }
 );

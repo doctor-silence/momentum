@@ -1,4 +1,5 @@
-import React from 'react';
+import { Suspense, lazy } from 'react';
+import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 
 // Import all pages
@@ -17,6 +18,16 @@ import Login from "./Login.jsx";
 import Register from "./Register.jsx";
 import AuthCallback from "./AuthCallback.jsx";
 import LeadMagnet from "./LeadMagnet.jsx";
+import ProtectedRouteAdmin from '../components/common/ProtectedRouteAdmin.jsx';
+
+// Admin pages (lazy-loaded)
+const AdminLayout = lazy(() => import('./Admin/AdminLayout.jsx'));
+const AdminDashboard = lazy(() => import('./Admin/Dashboard.jsx'));
+const Users = lazy(() => import('./Admin/Users.jsx'));
+const PromoCodes = lazy(() => import('./Admin/PromoCodes.jsx'));
+const AuditLog = lazy(() => import('./Admin/AuditLog.jsx'));
+const AiContent = lazy(() => import('./Admin/AiContent.jsx'));
+const Payments = lazy(() => import('./Admin/Payments.jsx'));
 
 // --- Auth Helper & Protected Route ---
 const isAuthenticated = () => !!localStorage.getItem('authToken');
@@ -29,12 +40,17 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 // --- Page Name Logic ---
 const PAGES = {
     Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback, LeadMagnet
 };
 
 function _getCurrentPage(url) {
+    if (url.startsWith('/admin')) return 'Admin';
     if (url === '/' || url.toLowerCase() === '/landing') return 'Landing';
     if (url.toLowerCase() === '/login') return 'Login';
     if (url.toLowerCase() === '/register') return 'Register';
@@ -47,35 +63,64 @@ function _getCurrentPage(url) {
     return pageName || 'Dashboard';
 }
 
+function AppRoutes() {
+    return (
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/auth/success" element={<AuthCallback />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/lead-magnet" element={<LeadMagnet />} />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+            <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={
+              <ProtectedRouteAdmin>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AdminLayout>
+                    <Routes>
+                      <Route path="dashboard" element={<AdminDashboard />} />
+                      <Route path="users" element={<Users />} />
+                      <Route path="promo-codes" element={<PromoCodes />} />
+                      <Route path="audit-log" element={<AuditLog />} />
+                      <Route path="ai-content" element={<AiContent />} />
+                      <Route path="payments" element={<Payments />} />
+                      <Route index element={<Navigate to="dashboard" replace />} />
+                    </Routes>
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRouteAdmin>
+            } />
+
+            {/* Fallback for any other path */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
+}
+
 // This component determines the current page and wraps the Routes with the Layout
 function AppWithLayout() {
     const location = useLocation();
     const currentPageName = _getCurrentPage(location.pathname);
 
+    if (currentPageName === 'Admin') {
+        return <AppRoutes />;
+    }
+
     return (
         <Layout currentPageName={currentPageName}>
-            <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/auth/success" element={<AuthCallback />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/lead-magnet" element={<LeadMagnet />} />
-                
-                {/* Protected Routes */}
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
-
-                {/* Fallback for any other path */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <AppRoutes />
         </Layout>
     );
 }
@@ -84,7 +129,9 @@ function AppWithLayout() {
 export default function Pages() {
     return (
         <Router>
-            <AppWithLayout />
+            <Suspense fallback={<div>Loading...</div>}>
+              <AppWithLayout />
+            </Suspense>
         </Router>
     );
 }

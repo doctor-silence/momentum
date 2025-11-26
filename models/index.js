@@ -2,6 +2,9 @@ const { sequelize } = require('../config/db');
 const User = require('./User');
 const Content = require('./Content');
 const PromoCode = require('./PromoCode'); // Import the new PromoCode model
+const Product = require('./Product');
+const ActionLog = require('./ActionLog');
+const AuditLog = require('./AuditLog');
 
 // --- Define Associations ---
 
@@ -18,7 +21,13 @@ Content.belongsTo(User, {
 });
 
 // A User belongs to a PromoCode (through promoCodeId on User model)
+PromoCode.hasMany(User, { foreignKey: 'promoCodeId' });
 User.belongsTo(PromoCode, { foreignKey: 'promoCodeId' });
+Product.hasMany(User, { foreignKey: 'productId' });
+User.hasMany(ActionLog, { foreignKey: 'userId' });
+ActionLog.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(AuditLog, { foreignKey: 'userId' });
+AuditLog.belongsTo(User, { foreignKey: 'userId' });
 
 
 const db = {
@@ -26,6 +35,9 @@ const db = {
   User,
   Content,
   PromoCode, // Add PromoCode to the db object
+  Product,
+  ActionLog,
+  AuditLog,
 };
 
 // Function to sync all models

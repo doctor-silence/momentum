@@ -1,15 +1,11 @@
 const asyncHandler = require('express-async-handler');
 const axios = require('axios');
-const { User } = require('../models'); // Corrected path to User model
+const { User, ActionLog } = require('../models');
 
-// @desc    Generate content using DeepSeek AI
-// @route   POST /api/ai/generate
-// @access  Private
 const generateContent = asyncHandler(async (req, res) => {
   const { prompt } = req.body;
   const createdBy = req.user.id;
 
-  // Find the user to check free generations left
   const user = await User.findByPk(createdBy);
 
   if (!user) {
@@ -17,7 +13,6 @@ const generateContent = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  // A user can generate content if they have unlimited generations OR if they have free generations left.
   const canGenerate = user.has_unlimited_generations === true || user.freeGenerationsLeft > 0;
 
   if (!canGenerate) {
@@ -76,14 +71,22 @@ The JSON object you return must match this schema: { "type": "object", "properti
       }
     );
 
-    // Decrement free generations only if the user is not subscribed
     if (!user.has_unlimited_generations) {
       user.freeGenerationsLeft -= 1;
       await user.save();
     }
 
-    // The response from the AI is a stringified JSON, so we need to parse it.
     const generatedJson = JSON.parse(response.data.choices[0].message.content);
+    
+    ActionLog.create({
+      userId: createdBy,
+      action: 'generate_content',
+      details: {
+        prompt,
+        generatedContent: generatedJson,
+      },
+    }).catch(err => console.error('Failed to log content generation action:', err));
+
     res.json({ ...generatedJson, freeGenerationsLeft: user.freeGenerationsLeft });
 
   } catch (error) {
@@ -159,7 +162,6 @@ const chatWithAgent = asyncHandler(async (req, res) => {
     throw new Error('DeepSeek API key is not configured on the server.');
   }
 
-  // A simple system prompt based on the agent name
   const systemPrompts = {
     content_strategist: 'You are an expert content strategist. Format your responses using Markdown for paragraphs, headings, bold text, and lists.',
     default: 'You are a helpful assistant.'
@@ -170,7 +172,6 @@ const chatWithAgent = asyncHandler(async (req, res) => {
     content: systemPrompts[agentName] || systemPrompts.default
   };
 
-  // Combine history with the new user message
   const messages = [systemMessage, ...history, { role: 'user', content: prompt }];
   
   console.log('Sending messages to DeepSeek:', messages);

@@ -7,6 +7,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
+const { User } = require('./models');
+const bcrypt = require('bcryptjs');
+
 const connectDB = require('./config/db');
 const { notFound } = require('./middleware/notFound');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -17,13 +20,35 @@ const { initSubscriptionJobs } = require('./jobs/subscriptionJobs'); // Import s
 // Passport config
 require('./config/passport')(passport);
 
-const db = require('./models');
-
 // Initialize Express app
 const app = express();
 
-// Connect to Database and sync models
-db.syncAll();
+const createAdminUser = async () => {
+  const adminEmail = 'admin@example.com';
+  const adminPassword = 'admin123';
+  
+  const adminUser = await User.findOne({ where: { email: adminEmail } });
+
+  if (adminUser) {
+    // User exists, update password to ensure it's correct
+    adminUser.password = adminPassword;
+    await adminUser.save();
+    console.log('Admin user password updated.');
+  } else {
+    // User does not exist, create it
+    await User.create({
+      email: adminEmail,
+      password: adminPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'Admin',
+      freeGenerationsLeft: 9999,
+      has_unlimited_generations: true,
+    });
+    console.log('Admin user created.');
+  }
+};
+
 
 // --- Middleware ---
 // Session middleware (required for Passport)
@@ -66,6 +91,7 @@ app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/content', require('./routes/contentRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/promocodes', require('./routes/promoCodeRoutes')); // New promo code routes
+app.use('/api/admin', require('./routes/adminRoutes')); // New admin routes
 
 // --- Error Handling ---
 // 404 Not Found handler
@@ -78,8 +104,13 @@ app.use(errorHandler);
 // --- Server Activation ---
 const PORT = 5001;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  scheduleOverdueCheck(); // Schedule the overdue check for invoices
-  initSubscriptionJobs(); // Initialize subscription expiry job
-});
+const startServer = async () => {
+  await createAdminUser();
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    scheduleOverdueCheck(); // Schedule the overdue check for invoices
+    initSubscriptionJobs(); // Initialize subscription expiry job
+  });
+};
+
+startServer();

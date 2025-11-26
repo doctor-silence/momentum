@@ -66,7 +66,7 @@ const registerUser = asyncHandler(async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      token: generateToken(user.id),
+      token: generateToken(user.id, user.role),
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations for new user
       industry: user.industry,
       core_message: user.core_message,
@@ -108,7 +108,7 @@ const loginUser = asyncHandler(async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      token: generateToken(user.id),
+      token: generateToken(user.id, user.role),
       freeGenerationsLeft: user.freeGenerationsLeft, // Include free generations on login
       industry: user.industry,
       core_message: user.core_message,

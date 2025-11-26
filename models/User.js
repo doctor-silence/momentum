@@ -1,6 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/db');
 const bcrypt = require('bcryptjs');
+const Product = require('./Product'); // Import the Product model
 
 class User extends Model {
   // Method to compare passwords
@@ -80,7 +81,7 @@ User.init({
   },
   // --- End Profile Fields ---
   role: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('manager', 'Admin', 'Moderator', 'Support'),
     defaultValue: 'manager',
   },
   freeGenerationsLeft: {
@@ -121,6 +122,14 @@ User.init({
       key: 'id',
     },
   },
+  productId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Products',
+      key: 'id',
+    },
+  },
 }, {
   sequelize,
   modelName: 'User',
@@ -141,5 +150,7 @@ User.init({
     },
   },
 });
+
+User.belongsTo(Product, { foreignKey: 'productId' });
 
 module.exports = User;
