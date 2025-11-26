@@ -28,6 +28,7 @@ import GenerationOptions from "../components/generate/GenerationOptions";
 import GeneratedContent from "../components/generate/GeneratedContent";
 import ContentIdeas from "../components/generate/ContentIdeas";
 import SubscriptionRequiredModal from "../components/common/SubscriptionRequiredModal"; // Import subscription modal
+import SubscriptionExpiredModal from "../components/common/SubscriptionExpiredModal"; // Import new subscription expired modal
 
 export default function Generate() {
   const { toast } = useToast();
@@ -37,7 +38,8 @@ export default function Generate() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [contentIdeas, setContentIdeas] = useState([]);
   const [isLoadingIdeas, setIsLoadingIdeas] = useState(false);
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false); // New state for subscription modal
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false); // State for subscription required modal
+  const [isSubscriptionExpiredModalOpen, setIsSubscriptionExpiredModalOpen] = useState(false); // New state for subscription expired modal
 
   const [userProfile, setUserProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -119,8 +121,15 @@ export default function Generate() {
     setIsLoading(true);
     setGeneratedContent(null);
     try {
-      // Corrected check: Block if user has no unlimited generations AND no free generations left.
-      if (userProfile.freeGenerationsLeft <= 0) {
+      // Check for expired subscription first
+      if (userProfile.subscription_status === 'expired') {
+        setIsSubscriptionExpiredModalOpen(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Then check for depleted free generations / inactive subscription
+      if (userProfile.subscription_status !== 'active' && !userProfile.has_unlimited_generations && userProfile.freeGenerationsLeft <= 0) {
         setIsSubscriptionModalOpen(true);
         setIsLoading(false);
         return;
@@ -280,6 +289,7 @@ export default function Generate() {
         </div>
       </div>
       <SubscriptionRequiredModal isOpen={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen} />
+      <SubscriptionExpiredModal isOpen={isSubscriptionExpiredModalOpen} onOpenChange={setIsSubscriptionExpiredModalOpen} /> {/* Render new modal */}
     </div>
   );
 }
