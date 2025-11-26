@@ -132,7 +132,7 @@ export default function Layout({ children, currentPageName }) {
         
         <Sidebar className="w-72 border-r border-white/10 bg-gradient-to-b from-slate-950/90 via-slate-900/85 to-indigo-900/80 text-white" role="navigation" aria-label="Primary">
           <SidebarHeader className="border-b border-white/10 p-6">
-            <Link to="/" className="flex items-center gap-3">
+            <div onClick={() => { localStorage.removeItem('authToken'); navigate('/login'); }} className="flex items-center gap-3 cursor-pointer">
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
                   <Zap className="w-6 h-6 text-white" />
@@ -145,7 +145,7 @@ export default function Layout({ children, currentPageName }) {
                 <h2 className="font-bold text-white text-lg">Momentum Amplify</h2>
                 <p className="text-xs text-white/80">Pro</p>
               </div>
-            </Link>
+            </div>
           </SidebarHeader>
           <SidebarContent className="p-4 text-white">
             <SidebarGroup>

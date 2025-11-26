@@ -1,6 +1,7 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Added import
 
 // Import all pages
 import Layout from "./Layout.jsx";
@@ -30,14 +31,53 @@ const AiContent = lazy(() => import('./Admin/AiContent.jsx'));
 const Payments = lazy(() => import('./Admin/Payments.jsx'));
 
 // --- Auth Helper & Protected Route ---
-const isAuthenticated = () => !!localStorage.getItem('authToken');
+const isAuthenticated = () => {
+  const token = localStorage.getItem('authToken');
+  if (!token) return false;
+
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000; // current time in seconds
+    // Check if token is expired
+    if (decoded.exp < currentTime) {
+      localStorage.removeItem('authToken'); // Remove expired token
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error decoding or validating token:', error);
+    localStorage.removeItem('authToken'); // Remove invalid token
+    return false;
+  }
+};
 
 const ProtectedRoute = ({ children }) => {
-  let location = useLocation();
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-  return children;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const authenticated = isAuthenticated();
+
+  useEffect(() => {
+    const checkAuthAndRedirect = () => {
+      if (!isAuthenticated()) { // Re-check authentication on page show
+        navigate('/login', { state: { from: location }, replace: true });
+      }
+    };
+
+    // Initial check
+    if (!authenticated) {
+      checkAuthAndRedirect();
+    }
+
+    // Add event listener for pageshow to handle bfcache
+    window.addEventListener('pageshow', checkAuthAndRedirect);
+
+    // Cleanup the event listener
+    return () => {
+      window.removeEventListener('pageshow', checkAuthAndRedirect);
+    };
+  }, [authenticated, location, navigate]);
+
+  return authenticated ? children : null; 
 };
 
 ProtectedRoute.propTypes = {
