@@ -93,7 +93,7 @@ exports.applyPromoCode = async (req, res) => {
 
     if (promoCodeDoc.discountType === 'percentage') {
       discountedPrice = originalPrice * (1 - promoCodeDoc.discountValue / 100);
-    } else if (promoCodeDoc.discountType === 'fixed') {
+    } else if (promoCodeDoc.discountType === 'fixed_amount') {
       discountedPrice = originalPrice - promoCodeDoc.discountValue;
     }
 

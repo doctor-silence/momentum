@@ -23,7 +23,7 @@ export const generateAiContent = async (prompt) => {
  */
 export const generateIdeasFromAI = async (prompt) => {
   try {
-    const { data } = await apiClient.post('/ai/generate-ideas', { prompt });
+    const { data } = await apiClient.post('/ai/ideas', { prompt });
     return data;
   } catch (error) {
     console.error("Error calling AI idea generation service:", error.response?.data?.message || error.message);

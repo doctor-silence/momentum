@@ -46,6 +46,8 @@ Content.init({
 }, {
   sequelize,
   modelName: 'Content',
+  tableName: 'Contents',
+  freezeTableName: true,
 });
 
 module.exports = Content;

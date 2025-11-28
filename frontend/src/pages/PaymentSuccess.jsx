@@ -44,8 +44,8 @@ export default function PaymentSuccess() {
                 Статус:{" "}
                 {loading ? (
                   "Проверка..."
-                ) : profile?.subscription_status ? (
-                  <span className="text-emerald-300 font-medium">{profile.subscription_status}</span>
+                ) : profile?.subscription_status === 'active' ? (
+                  <span className="text-emerald-300 font-medium">Подтвержден</span>
                 ) : (
                   <span className="text-white/60">В ожидании</span>
                 )}

@@ -23,9 +23,9 @@ const AdminLayout = ({ children }) => {
   ];
 
   const sidebarContent = (
-    <div className="bg-gray-800 text-white w-64 space-y-2 py-7 px-2 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out">
+    <div className="bg-gray-800 text-white w-64 flex flex-col space-y-2 py-7 px-2 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out">
       <div className="px-4 text-2xl font-bold">Админ-панель</div>
-      <nav className="mt-10">
+      <nav className="mt-10 flex-grow">
         {navLinks.map(link => (
           <NavLink
             key={link.to}
@@ -42,7 +42,7 @@ const AdminLayout = ({ children }) => {
           </NavLink>
         ))}
       </nav>
-      <div className="absolute bottom-0 w-full">
+      <div>
         <button
           onClick={handleLogout}
           className="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 w-full"

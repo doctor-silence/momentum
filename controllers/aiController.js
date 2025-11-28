@@ -172,6 +172,7 @@ const chatWithAgent = asyncHandler(async (req, res) => {
     default: 'You are a helpful assistant.'
   };
 
+  const systemMessage = { role: 'system', content: systemPrompts[agentName] || systemPrompts.default };
   const messages = [systemMessage, ...history, { role: 'user', content: prompt }];
   
   console.log('Sending messages to DeepSeek:', messages);

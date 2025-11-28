@@ -15,6 +15,7 @@ const { notFound } = require('./middleware/notFound');
 const { errorHandler } = require('./middleware/errorHandler');
 const { scheduleOverdueCheck } = require('./jobs/invoiceJobs');
 const { initSubscriptionJobs } = require('./jobs/subscriptionJobs'); // Import subscription jobs
+const path = require('path');
 
 // --- Initializations ---
 // Passport config
@@ -92,6 +93,17 @@ app.use('/api/content', require('./routes/contentRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/promocodes', require('./routes/promoCodeRoutes')); // New promo code routes
 app.use('/api/admin', require('./routes/adminRoutes')); // New admin routes
+
+// --- Serve Frontend in Production ---
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder from 'frontend/dist'
+  app.use(express.static(path.join(__dirname, 'frontend/dist')));
+
+  // Handle SPA: for any request that doesn't start with /api, send index.html
+  app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+  });
+}
 
 // --- Error Handling ---
 // 404 Not Found handler
