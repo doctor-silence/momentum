@@ -1,6 +1,7 @@
+const path = require('path');
 const dotenv = require('dotenv');
-// Load environment variables FIRST
-dotenv.config();
+// Load environment variables FIRST from the project root
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
 const cors = require('cors');
@@ -15,7 +16,6 @@ const { notFound } = require('./middleware/notFound');
 const { errorHandler } = require('./middleware/errorHandler');
 const { scheduleOverdueCheck } = require('./jobs/invoiceJobs');
 const { initSubscriptionJobs } = require('./jobs/subscriptionJobs'); // Import subscription jobs
-const path = require('path');
 
 // --- Initializations ---
 // Passport config
@@ -97,11 +97,11 @@ app.use('/api/admin', require('./routes/adminRoutes')); // New admin routes
 // --- Serve Frontend in Production ---
 if (process.env.NODE_ENV === 'production') {
   // Set static folder from 'frontend/dist'
-  app.use(express.static(path.join(__dirname, 'frontend/dist')));
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
   // Handle SPA: for any request that doesn't start with /api, send index.html
   app.get(/^\/(?!api).*/, (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+    res.sendFile(path.resolve(__dirname, '..', 'frontend', 'dist', 'index.html'));
   });
 }
 
