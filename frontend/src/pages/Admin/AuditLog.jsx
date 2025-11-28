@@ -3,7 +3,7 @@ import { getAuditLogs } from '../../api/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import useDebounce from '../../hooks/use-debounce';
+import { useDebounce } from '../../hooks/use-debounce';
 
 const AuditLog = () => {
   const [logs, setLogs] = useState([]);
