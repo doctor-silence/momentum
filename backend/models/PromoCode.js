@@ -4,9 +4,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class PromoCode extends Model {
     static associate(models) {
-      // A promo code can be assigned to many users, but a user has one promo code
-      // This is a one-to-many relationship from PromoCode to User
-      PromoCode.hasMany(models.User, { foreignKey: 'promoCodeId' });
+      // Association is defined in User.js
     }
   }
 

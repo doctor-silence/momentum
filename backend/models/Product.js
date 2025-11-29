@@ -4,8 +4,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
     static associate(models) {
-      // A product can be assigned to many users
-      Product.hasMany(models.User, { foreignKey: 'productId' });
+      // Association is defined in User.js
     }
   }
 

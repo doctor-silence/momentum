@@ -10,9 +10,14 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static associate(models) {
-      // Define associations here
+      // A User belongs to a Product and a PromoCode
       User.belongsTo(models.Product, { foreignKey: 'productId' });
       User.belongsTo(models.PromoCode, { foreignKey: 'promoCodeId' });
+
+      // A User can have many Contents, ActionLogs, and AuditLogs
+      User.hasMany(models.Content, { foreignKey: 'userId' });
+      User.hasMany(models.ActionLog, { foreignKey: 'userId' });
+      User.hasMany(models.AuditLog, { foreignKey: 'userId' });
     }
   }
 
