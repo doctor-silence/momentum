@@ -1,156 +1,161 @@
-const { DataTypes, Model } = require('sequelize');
-const { sequelize } = require('../config/db');
+'use strict';
+const { Model } = require('sequelize');
 const bcrypt = require('bcryptjs');
-const Product = require('./Product'); // Import the Product model
 
-class User extends Model {
-  // Method to compare passwords
-  comparePassword(candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password);
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    // Method to compare passwords
+    comparePassword(candidatePassword) {
+      return bcrypt.compare(candidatePassword, this.password);
+    }
+
+    static associate(models) {
+      // Define associations here
+      User.belongsTo(models.Product, { foreignKey: 'productId' });
+      User.belongsTo(models.PromoCode, { foreignKey: 'promoCodeId' });
+    }
   }
-}
 
-User.init({
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  googleId: {
-    type: DataTypes.STRING,
-  },
-  vkId: {
-    type: DataTypes.STRING,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true,
+  User.init({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: true, // Allow null for Google OAuth users
-  },
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  lastName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  // --- Profile Fields ---
-  industry: {
-    type: DataTypes.STRING,
-    defaultValue: '',
-  },
-  core_message: {
-    type: DataTypes.TEXT,
-    defaultValue: '',
-  },
-  brand_voice_tone: { // Storing tone directly
-    type: DataTypes.STRING,
-    defaultValue: 'professional',
-  },
-  writing_style_description: {
-    type: DataTypes.TEXT,
-    defaultValue: '',
-  },
-  monthly_content_goal: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  target_audiences: { // Storing as JSON array of objects
-    type: DataTypes.JSONB,
-    defaultValue: [],
-  },
-  content_pillars: { // Storing as JSON array of strings
-    type: DataTypes.JSONB,
-    defaultValue: [],
-  },
-  goals_primary_goal: { // Storing primary_goal directly
-    type: DataTypes.STRING,
-    defaultValue: '',
-  },
-  preferred_platforms: { // Storing as JSON array of strings
-    type: DataTypes.JSONB,
-    defaultValue: [],
-  },
-  // --- End Profile Fields ---
-  role: {
-    type: DataTypes.ENUM('manager', 'Admin', 'Moderator', 'Support'),
-    defaultValue: 'manager',
-  },
-  freeGenerationsLeft: {
-    type: DataTypes.INTEGER,
-    defaultValue: 5,
-    allowNull: false,
-  },
-  has_unlimited_generations: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
-  subscription_provider: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  subscription_id: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  subscription_status: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  subscriptionStartDate: { // New field for subscription start date
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  subscriptionEndDate: { // New field for subscription end date
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  promoCodeId: { // New field for promo code
-    type: DataTypes.UUID,
-    allowNull: true,
-    references: {
-      model: 'PromoCodes', // This is the table name, not the model name
-      key: 'id',
+    googleId: {
+      type: DataTypes.STRING,
     },
-  },
-  productId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-    references: {
-      model: 'Products',
-      key: 'id',
+    vkId: {
+      type: DataTypes.STRING,
     },
-  },
-}, {
-  sequelize,
-  modelName: 'User',
-  freezeTableName: true, // Prevent Sequelize from pluralizing the table name
-  tableName: 'Users',    // Explicitly set the table name to 'Users'
-  hooks: {
-    beforeCreate: async (user) => {
-      if (user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
-    beforeUpdate: async (user) => {
-      if (user.changed('password') && user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
+    password: {
+      type: DataTypes.STRING,
+      allowNull: true, // Allow null for Google OAuth users
     },
-  },
-});
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    // --- Profile Fields ---
+    industry: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    core_message: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+    },
+    brand_voice_tone: { // Storing tone directly
+      type: DataTypes.STRING,
+      defaultValue: 'professional',
+    },
+    writing_style_description: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+    },
+    monthly_content_goal: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    target_audiences: { // Storing as JSON array of objects
+      type: DataTypes.JSONB,
+      defaultValue: [],
+    },
+    content_pillars: { // Storing as JSON array of strings
+      type: DataTypes.JSONB,
+      defaultValue: [],
+    },
+    goals_primary_goal: { // Storing primary_goal directly
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    preferred_platforms: { // Storing as JSON array of strings
+      type: DataTypes.JSONB,
+      defaultValue: [],
+    },
+    // --- End Profile Fields ---
+    role: {
+      type: DataTypes.ENUM('manager', 'Admin', 'Moderator', 'Support'),
+      defaultValue: 'manager',
+    },
+    freeGenerationsLeft: {
+      type: DataTypes.INTEGER,
+      defaultValue: 5,
+      allowNull: false,
+    },
+    has_unlimited_generations: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    subscription_provider: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    subscription_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    subscription_status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    subscriptionStartDate: { // New field for subscription start date
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    subscriptionEndDate: { // New field for subscription end date
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    promoCodeId: { // New field for promo code
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'PromoCodes', // This is the table name, not the model name
+        key: 'id',
+      },
+    },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'Products',
+        key: 'id',
+      },
+    },
+  }, {
+    sequelize,
+    modelName: 'User',
+    freezeTableName: true,
+    tableName: 'Users',
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed('password') && user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+    },
+  });
 
-User.belongsTo(Product, { foreignKey: 'productId' });
-
-module.exports = User;
+  return User;
+};
