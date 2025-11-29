@@ -1,48 +1,41 @@
-const { sequelize } = require('../config/db');
-const User = require('./User');
-const Content = require('./Content');
-const PromoCode = require('./PromoCode'); // Import the new PromoCode model
-const Product = require('./Product');
-const ActionLog = require('./ActionLog');
-const AuditLog = require('./AuditLog');
+'use strict';
 
-// --- Define Associations ---
+const fs = require('fs');
+const path = require('path');
+const { Sequelize } = require('sequelize');
+const { sequelize } = require('../config/db'); // Use the single instance of sequelize
+const basename = path.basename(__filename);
+const db = {};
 
-// User has many Content posts
-User.hasMany(Content, {
-  foreignKey: {
-    name: 'createdBy',
-    allowNull: false
-  },
-  onDelete: 'CASCADE', // If a user is deleted, their content is also deleted.
+// Find all model files and initialize them
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js'
+    );
+  })
+  .forEach(file => {
+    // Each model file exports a function that needs to be called with sequelize and DataTypes
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+// Associate models if they have an 'associate' method
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
 });
-Content.belongsTo(User, {
-  foreignKey: 'createdBy',
-});
 
-// A User belongs to a PromoCode (through promoCodeId on User model)
-PromoCode.hasMany(User, { foreignKey: 'promoCodeId' });
-User.belongsTo(PromoCode, { foreignKey: 'promoCodeId' });
-Product.hasMany(User, { foreignKey: 'productId' });
-User.hasMany(ActionLog, { foreignKey: 'userId' });
-ActionLog.belongsTo(User, { foreignKey: 'userId' });
-User.hasMany(AuditLog, { foreignKey: 'userId' });
-AuditLog.belongsTo(User, { foreignKey: 'userId' });
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-
-const db = {
-  sequelize,
-  User,
-  Content,
-  PromoCode, // Add PromoCode to the db object
-  Product,
-  ActionLog,
-  AuditLog,
-};
-
-// Function to sync all models
+// Keep the custom syncAll function
 db.syncAll = async () => {
-  await sequelize.sync({ alter: true }); // Use alter: true to update tables without dropping them
+  await sequelize.sync({ alter: true });
   console.log("All models were synchronized successfully.");
 };
 
