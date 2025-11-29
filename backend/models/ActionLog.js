@@ -1,34 +1,40 @@
-const { DataTypes, Model } = require('sequelize');
-const { sequelize } = require('../config/db');
+'use strict';
+const { Model } = require('sequelize');
 
-class ActionLog extends Model {}
+module.exports = (sequelize, DataTypes) => {
+  class ActionLog extends Model {
+    static associate(models) {
+      ActionLog.belongsTo(models.User, { foreignKey: 'userId' });
+    }
+  }
 
-ActionLog.init({
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  userId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'Users',
-      key: 'id',
+  ActionLog.init({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-  },
-  action: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  details: {
-    type: DataTypes.JSONB,
-    defaultValue: {},
-  },
-}, {
-  sequelize,
-  modelName: 'ActionLog',
-  updatedAt: false, // We only care about when the action was created
-});
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id',
+      },
+    },
+    action: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    details: {
+      type: DataTypes.JSONB,
+      defaultValue: {},
+    },
+  }, {
+    sequelize,
+    modelName: 'ActionLog',
+    updatedAt: false,
+  });
 
-module.exports = ActionLog;
+  return ActionLog;
+};

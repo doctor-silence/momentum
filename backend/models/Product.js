@@ -1,38 +1,45 @@
-const { DataTypes, Model } = require('sequelize');
-const { sequelize } = require('../config/db');
+'use strict';
+const { Model } = require('sequelize');
 
-class Product extends Model {}
+module.exports = (sequelize, DataTypes) => {
+  class Product extends Model {
+    static associate(models) {
+      // A product can be assigned to many users
+      Product.hasMany(models.User, { foreignKey: 'productId' });
+    }
+  }
 
-Product.init({
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-  },
-  price: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  // unit can be 'monthly', 'yearly', or other billing cycle
-  unit: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  // sku is a stock keeping unit, can be used for internal reference
-  sku: {
-    type: DataTypes.STRING,
-    unique: true,
-  },
-}, {
-  sequelize,
-  modelName: 'Product',
-});
+  Product.init({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    // unit can be 'monthly', 'yearly', or other billing cycle
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    // sku is a stock keeping unit, can be used for internal reference
+    sku: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+  }, {
+    sequelize,
+    modelName: 'Product',
+  });
 
-module.exports = Product;
+  return Product;
+};
