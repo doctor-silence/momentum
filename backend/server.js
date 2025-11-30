@@ -27,7 +27,7 @@ const app = express();
 
 const createAdminUser = async () => {
   const adminEmail = 'admin@example.com';
-  const adminPassword = 'admin123';
+  const adminPassword = '123Qwe123!123Qwe123!';
   
   const adminUser = await User.findOne({ where: { email: adminEmail } });
 
