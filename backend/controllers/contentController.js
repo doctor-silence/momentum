@@ -9,9 +9,9 @@ const createContent = asyncHandler(async (req, res) => {
   const { title, body, platform, content_type, hashtags, status } = req.body;
 
   // We get the user ID from the 'protect' middleware
-  const createdBy = req.user.id;
+  const userId = req.user.id;
 
-  if (!title || !body || !platform || !content_type || !createdBy) {
+  if (!title || !body || !platform || !content_type || !userId) {
     res.status(400);
     throw new Error('Пожалуйста, предоставьте все обязательные поля (title, body, platform, content_type).');
   }
@@ -23,7 +23,7 @@ const createContent = asyncHandler(async (req, res) => {
     content_type,
     hashtags,
     status,
-    createdBy,
+    userId,
   });
 
   if (content) {
@@ -39,7 +39,7 @@ const createContent = asyncHandler(async (req, res) => {
 // @access  Private
 const getUserContent = asyncHandler(async (req, res) => {
   const { search, platform, status } = req.query;
-  const whereClause = { createdBy: req.user.id };
+  const whereClause = { userId: req.user.id };
 
   if (search) {
     whereClause.title = { [Op.iLike]: `%${search}%` };
@@ -68,7 +68,7 @@ const updateContent = asyncHandler(async (req, res) => {
   }
 
   // Check if the user is the owner of the content
-  if (content.createdBy.toString() !== req.user.id.toString()) {
+  if (content.userId.toString() !== req.user.id.toString()) {
     res.status(403);
     throw new Error('User not authorized to update this content');
   }
@@ -87,7 +87,7 @@ const deleteContent = asyncHandler(async (req, res) => {
   }
 
   // Check if the user is the owner of the content
-  if (content.createdBy.toString() !== req.user.id.toString()) {
+  if (content.userId.toString() !== req.user.id.toString()) {
     res.status(403);
     throw new Error('User not authorized to delete this content');
   }
