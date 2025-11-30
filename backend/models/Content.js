@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     userId: { // Foreign key for the User
-allowNull: true,
+      type: DataTypes.UUID,
+      allowNull: true,
       references: {
         model: 'Users',
         key: 'id'
