@@ -10,6 +10,11 @@ const createPayment = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    // DEBUG: Log the CLIENT_URL to see what value the server is using
+    console.log('--- DEBUG: Creating payment ---');
+    console.log('CLIENT_URL from process.env:', process.env.CLIENT_URL);
+    console.log('--- END DEBUG ---');
+
     const payment = await yooKassa.createPayment({
       amount: {
         value: price,
@@ -88,3 +93,4 @@ module.exports = {
   createPayment,
   handleWebhook,
 };
+
