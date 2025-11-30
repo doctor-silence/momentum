@@ -8,7 +8,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
-const { User } = require('./models');
+const db = require('./models');
+const { User } = db;
 const bcrypt = require('bcryptjs');
 
 const connectDB = require('./config/db');
@@ -117,6 +118,7 @@ app.use(errorHandler);
 const PORT = 5001;
 
 const startServer = async () => {
+  await db.syncAll(); // Sync all models with the database
   await createAdminUser();
   app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
