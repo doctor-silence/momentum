@@ -1,5 +1,5 @@
 const yooKassa = require('../config/yookassa');
-const User = require('../models/User');
+const { User } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 
 // @desc    Create a new payment
