@@ -38,6 +38,7 @@ const createPayment = async (req, res) => {
             },
             vat_code: '1', // Без НДС
             payment_subject: 'service',
+            payment_mode: 'full_payment',
           },
         ],
       },
