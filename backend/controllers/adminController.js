@@ -9,18 +9,16 @@ const getDashboardData = asyncHandler(async (req, res) => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-  const newUsers = await User.count({ where: { createdAt: { [Op.gte]: oneMonthAgo } } });
-  const totalUsers = await User.count();
-
-  const activeSubscribedUsers = await User.findAll({
+  // --- Database Queries ---
+  const newUsersPromise = User.count({ where: { createdAt: { [Op.gte]: oneMonthAgo } } });
+  const totalUsersPromise = User.count();
+  
+  const activeSubscribedUsersPromise = User.findAll({
     where: { subscription_status: 'active', productId: { [Op.ne]: null } },
     include: [{ model: Product, required: true }],
   });
 
-  const mrr = activeSubscribedUsers.reduce((total, user) => total + user.Product.price, 0);
-  const arr = mrr * 12;
-
-  const userRegistration = await User.findAll({
+  const userRegistrationPromise = User.findAll({
     attributes: [
       [fn('date_trunc', 'day', col('createdAt')), 'date'],
       [fn('count', col('id')), 'count'],
@@ -31,36 +29,66 @@ const getDashboardData = asyncHandler(async (req, res) => {
     raw: true,
   });
 
-  const planDistribution = await User.findAll({
-    attributes: [
-      'productId',
-      [fn('count', col('User.id')), 'count'],
-    ],
-    include: [{
-      model: Product,
-      attributes: ['name'],
-      required: true,
-    }],
+  const planDistributionPromise = User.findAll({
+    attributes: ['productId', [fn('count', col('User.id')), 'count']],
+    include: [{ model: Product, attributes: ['name'], required: true }],
     group: ['productId', 'Product.id', 'Product.name'],
     raw: true,
   });
 
-  const topFeatures = await ActionLog.findAll({
-    attributes: [
-      'action',
-      [fn('count', col('action')), 'count'],
-    ],
+  const topFeaturesPromise = ActionLog.findAll({
+    attributes: ['action', [fn('count', col('action')), 'count']],
     group: ['action'],
     order: [[fn('count', col('action')), 'DESC']],
     limit: 10,
     raw: true,
   });
 
+  // --- YooKassa API Query ---
+  let totalRevenueCollected = 0;
+  try {
+    const successfulPayments = await yooKassa.getPaymentList({
+      status: 'succeeded',
+      limit: 200, // Get the last 200 successful payments
+    });
+    if (successfulPayments && successfulPayments.items) {
+      totalRevenueCollected = successfulPayments.items.reduce((total, payment) => {
+        return total + parseFloat(payment.amount.value);
+      }, 0);
+    }
+  } catch (yooKassaError) {
+    console.error("Could not fetch total revenue from YooKassa:", yooKassaError);
+    // If this fails, we'll just send 0 and not crash the dashboard
+  }
+
+  // --- Resolve all promises ---
+  const [
+    newUsers,
+    totalUsers,
+    activeSubscribedUsers,
+    userRegistration,
+    planDistribution,
+    topFeatures
+  ] = await Promise.all([
+    newUsersPromise,
+    totalUsersPromise,
+    activeSubscribedUsersPromise,
+    userRegistrationPromise,
+    planDistributionPromise,
+    topFeaturesPromise
+  ]);
+
+  // --- Calculations ---
+  const mrr = activeSubscribedUsers.reduce((total, user) => total + user.Product.price, 0);
+  const arr = mrr * 12;
+
+  // --- Final Response ---
   res.json({
     newUsers,
     totalUsers,
     mrr,
     arr,
+    totalRevenueCollected, // Add new metric here
     userRegistration,
     planDistribution: planDistribution.map(p => ({ name: p['Product.name'], value: parseInt(p.count, 10) })),
     topFeatures,

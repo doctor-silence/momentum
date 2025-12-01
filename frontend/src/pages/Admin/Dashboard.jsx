@@ -43,7 +43,7 @@ const Dashboard = () => {
     <div>
       <h2 className="text-2xl font-bold mb-4">Дашборд</h2>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Всего пользователей</CardTitle>
@@ -62,7 +62,7 @@ const Dashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Мес. выручка</CardTitle>
+            <CardTitle className="text-sm font-medium">Мес. выручка (MRR)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.mrr.toFixed(2)} ₽</div>
@@ -70,10 +70,18 @@ const Dashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Год. выручка</CardTitle>
+            <CardTitle className="text-sm font-medium">Год. выручка (ARR)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.arr.toFixed(2)} ₽</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Всего получено</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data?.totalRevenueCollected?.toFixed(2)} ₽</div>
           </CardContent>
         </Card>
       </div>
