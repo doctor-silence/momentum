@@ -47,14 +47,21 @@ const getDashboardData = asyncHandler(async (req, res) => {
   // --- YooKassa API Query ---
   let totalRevenueCollected = 0;
   try {
+    console.log('Fetching payments from YooKassa for total revenue...');
     const successfulPayments = await yooKassa.getPaymentsList({
       status: 'succeeded',
       limit: 200, // Get the last 200 successful payments
     });
+    console.log('[Debug] YooKassa response:', JSON.stringify(successfulPayments, null, 2));
+
     if (successfulPayments && successfulPayments.items) {
+      console.log(`[Debug] Found ${successfulPayments.items.length} successful payments.`);
       totalRevenueCollected = successfulPayments.items.reduce((total, payment) => {
         return total + parseFloat(payment.amount.value);
       }, 0);
+      console.log(`[Debug] Calculated total revenue: ${totalRevenueCollected}`);
+    } else {
+      console.log('[Debug] No "items" array found in YooKassa response.');
     }
   } catch (yooKassaError) {
     console.error("Could not fetch total revenue from YooKassa:", yooKassaError);
