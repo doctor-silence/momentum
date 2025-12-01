@@ -47,7 +47,7 @@ const getDashboardData = asyncHandler(async (req, res) => {
   // --- YooKassa API Query ---
   let totalRevenueCollected = 0;
   try {
-    const successfulPayments = await yooKassa.getPaymentList({
+    const successfulPayments = await yooKassa.getPaymentsList({
       status: 'succeeded',
       limit: 200, // Get the last 200 successful payments
     });
@@ -280,7 +280,7 @@ const getAiContent = asyncHandler(async (req, res) => {
 const getPayments = asyncHandler(async (req, res) => {
   try {
     const { limit = 10, cursor } = req.query;
-    const payments = await yooKassa.getPaymentList({
+    const payments = await yooKassa.getPaymentsList({
       limit,
       cursor,
     });
