@@ -37,6 +37,7 @@ const createPayment = async (req, res) => {
               currency: currency,
             },
             vat_code: '1', // Без НДС
+            payment_subject: 'service',
           },
         ],
       },
