@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 // @route   POST /api/payments/create
 // @access  Private
 const createPayment = async (req, res) => {
-  const { price, currency } = req.body;
+  const { price, currency, description } = req.body;
   const userId = req.user.id;
 
   try {
@@ -24,7 +24,23 @@ const createPayment = async (req, res) => {
         type: 'redirect',
         return_url: `${process.env.CLIENT_URL}/payment-success`,
       },
-      description: 'Subscription payment',
+       receipt: {
+        customer: {
+          email: req.user.email,
+        },
+        items: [
+          {
+            description: description || 'Подписка на Momentum',
+            quantity: '1.00',
+            amount: {
+              value: price,
+              currency: currency,
+            },
+            vat_code: '1', // Без НДС
+          },
+        ],
+      },
+      description: description || 'Оплата подписки',
       metadata: {
         userId: userId,
       },
