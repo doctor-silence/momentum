@@ -1,13 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getUsers } from '../../api/admin';
+import { getUsers, deleteUser } from '../../api/admin'; // Import deleteUser
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDebounce } from '@/hooks/use-debounce';
 import EditUserDialog from './EditUserDialog';
+import ConfirmationDialog from '@/components/common/ConfirmationDialog'; // Import ConfirmationDialog
+import { useToast } from "@/components/ui/use-toast"; // Import useToast
+import { Trash2 } from 'lucide-react'; // Import icon
+
 
 const Users = () => {
+  const { toast } = useToast();
   const [users, setUsers] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +22,10 @@ const Users = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [editingUserId, setEditingUserId] = useState(null);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete confirmation dialog
+  const [userToDelete, setUserToDelete] = useState(null); // User object to be deleted
+
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -46,6 +55,39 @@ const Users = () => {
     setEditingUserId(userId);
     setEditDialogOpen(true);
   };
+
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await deleteUser(userToDelete.id);
+      toast({
+        title: "Успех!",
+        description: `Пользователь ${userToDelete.email} удален.`,
+      });
+      fetchUsers(); // Refetch users after deletion
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      let errorMessage = 'Не удалось удалить пользователя.';
+      if (err.response && err.response.data && err.response.data.message) {
+        errorMessage = err.response.data.message;
+      }
+      toast({
+        variant: "destructive",
+        title: "Ошибка удаления",
+        description: errorMessage,
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
 
   const handleUserUpdated = () => {
     fetchUsers(); // Refetch users after an update
@@ -99,8 +141,11 @@ const Users = () => {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEditClick(user.id)}>Редактировать</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(user)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -136,6 +181,20 @@ const Users = () => {
         isOpen={isEditDialogOpen}
         onOpenChange={setEditDialogOpen}
         onUserUpdated={handleUserUpdated}
+      />
+      
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        title="Подтвердите удаление пользователя"
+        description={
+          userToDelete
+            ? `Вы уверены, что хотите удалить пользователя ${userToDelete.email}? Это действие необратимо.`
+            : 'Вы уверены, что хотите удалить этого пользователя? Это действие необратимо.'
+        }
+        confirmText="Удалить"
+        cancelText="Отмена"
       />
     </div>
   );

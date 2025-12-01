@@ -3,6 +3,8 @@ const { User, Product, ActionLog, PromoCode, AuditLog } = require('../models');
 const { Op, fn, col, literal } = require('sequelize');
 const yooKassa = require('../config/yookassa');
 
+// ... (other functions remain the same)
+
 const getDashboardData = asyncHandler(async (req, res) => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -140,6 +142,30 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findByPk(req.params.id);
+
+  if (user) {
+    // Prevent admin from deleting themselves or the main admin account
+    if (user.id === req.user.id) {
+      res.status(400);
+      throw new Error('You cannot delete your own account.');
+    }
+    // This is a simple check, could be made more robust
+    if (user.email === 'admin@example.com') {
+        res.status(400);
+        throw new Error('Cannot delete the main admin account.');
+    }
+
+    await user.destroy();
+    res.json({ message: 'User removed' });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+
 const getPromoCodes = asyncHandler(async (req, res) => {
   const promoCodes = await PromoCode.findAll({
     order: [['createdAt', 'DESC']],
@@ -242,6 +268,7 @@ module.exports = {
   getUsers,
   getUserById,
   updateUser,
+  deleteUser,
   getPromoCodes,
   createPromoCode,
   getAuditLogs,

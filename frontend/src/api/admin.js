@@ -42,6 +42,16 @@ export const updateUser = async (id, userData) => {
   }
 };
 
+export const deleteUser = async (id) => {
+  try {
+    const response = await apiClient.delete(`/admin/users/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting user ${id}:`, error);
+    throw error;
+  }
+};
+
 export const getPromoCodes = async () => {
   try {
     const response = await apiClient.get('/admin/promocodes');
