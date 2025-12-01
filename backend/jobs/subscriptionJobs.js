@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const User = require('../models/User');
+const { User } = require('../models'); // Fix: Import User model correctly
 
 const checkAndExpireSubscriptions = async () => {
   console.log('Running subscription expiry check...');
