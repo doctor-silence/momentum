@@ -1,17 +1,21 @@
 const yooKassa = require('../config/yookassa');
-const { User } = require('../models');
+const { User, Product } = require('../models'); // Ensure Product is imported
 const { v4: uuidv4 } = require('uuid');
 
 // @desc    Create a new payment
 // @route   POST /api/payments/create
 // @access  Private
 const createPayment = async (req, res) => {
-  const { price, currency, description } = req.body;
+  // Add productId to the destructured request body
+  const { price, currency, description, productId } = req.body;
   const userId = req.user.id;
 
+  if (!productId) {
+    res.status(400);
+    throw new Error('productId is required');
+  }
+
   try {
-
-
     const payment = await yooKassa.createPayment({
       amount: {
         value: price,
@@ -45,6 +49,7 @@ const createPayment = async (req, res) => {
       description: description || 'Оплата подписки',
       metadata: {
         userId: userId,
+        productId: productId, // Add productId to metadata
       },
     });
 
@@ -65,13 +70,19 @@ const handleWebhook = async (req, res) => {
 
   try {
     if (event === 'payment.succeeded' || event === 'payment.waiting_for_capture') {
-      const userId = payment.metadata.userId;
-      console.log('Payment Succeeded/Waiting for capture for userId:', userId, 'Payment ID:', payment.id);
+      const { userId, productId } = payment.metadata; // Extract productId from metadata
+      console.log('Payment Succeeded/Waiting for capture for userId:', userId, 'productId:', productId, 'Payment ID:', payment.id);
 
+      if (!userId || !productId) {
+        console.error('Webhook metadata is missing userId or productId');
+        return res.status(400).send('Webhook metadata is missing userId or productId');
+      }
+      
       const user = await User.findByPk(userId);
+      const product = await Product.findByPk(productId);
 
-      if (user) {
-        console.log('User found:', user.id);
+      if (user && product) {
+        console.log('User and Product found:', user.id, product.id);
         const now = new Date();
         const oneMonthLater = new Date(now);
         oneMonthLater.setMonth(now.getMonth() + 1);
@@ -79,19 +90,21 @@ const handleWebhook = async (req, res) => {
         user.subscription_provider = 'yookassa';
         user.subscription_id = payment.id;
         user.subscription_status = 'active';
+        user.productId = productId; // Set the productId on the user
         user.has_unlimited_generations = true;
         user.freeGenerationsLeft = 1000;
         user.subscriptionStartDate = now;
         user.subscriptionEndDate = oneMonthLater;
 
-        console.log('Attempting to save user with subscription dates:');
+        console.log('Attempting to save user with subscription dates and productId:');
         console.log('  subscriptionStartDate:', user.subscriptionStartDate);
         console.log('  subscriptionEndDate:', user.subscriptionEndDate);
+        console.log('  productId:', user.productId);
 
         await user.save();
         console.log('User saved successfully with updated subscription info.');
       } else {
-        console.log('User not found for userId:', userId);
+        console.log(`User not found for userId: ${userId} or Product not found for productId: ${productId}`);
       }
     } else {
       console.log('Webhook event is not payment.succeeded or payment.waiting_for_capture. Event:', event);
@@ -108,4 +121,3 @@ module.exports = {
   createPayment,
   handleWebhook,
 };
-

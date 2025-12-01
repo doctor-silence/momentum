@@ -43,7 +43,13 @@ export default function Pricing() {
     setSubmitting(true);
     try {
       const priceToUse = discountedPrice !== null ? discountedPrice : originalPrice;
-      const payment = await createCheckoutSession({ price: priceToUse.toFixed(2), currency: "RUB" });
+      // Pass productId and a specific description to the checkout session
+      const payment = await createCheckoutSession({ 
+        price: priceToUse.toFixed(2), 
+        currency: "RUB",
+        productId: 1, // Assuming "Starter" plan has ID 1
+        description: "Подписка на тариф Starter" 
+      });
       if (payment?.confirmation?.confirmation_url) {
         window.location.href = payment.confirmation.confirmation_url;
       } else {
