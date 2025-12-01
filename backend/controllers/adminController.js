@@ -223,6 +223,13 @@ const getAiContent = asyncHandler(async (req, res) => {
   }
 });
 
+const asyncHandler = require('express-async-handler');
+const { User, Product, ActionLog, PromoCode, AuditLog } = require('../models');
+const { Op, fn, col, literal } = require('sequelize');
+const yooKassa = require('../config/yookassa');
+
+// ... (previous functions remain unchanged)
+
 const getPayments = asyncHandler(async (req, res) => {
   try {
     const { limit = 10, cursor } = req.query;
@@ -233,9 +240,28 @@ const getPayments = asyncHandler(async (req, res) => {
     res.json(payments);
   } catch (error) {
     console.error('Error fetching payments from YooKassa:', error);
-    res.status(500).send('Server error');
+    // Send a more detailed error response to the frontend
+    const statusCode = error.response?.status || 500;
+    const errorData = error.response?.data || { message: 'An unexpected error occurred' };
+    res.status(statusCode).json({ 
+      message: `Failed to fetch payments from YooKassa: ${errorData.description || errorData.message}`,
+      details: errorData 
+    });
   }
 });
+
+module.exports = {
+  getDashboardData,
+  getUsers,
+  getUserById,
+  updateUser,
+  getPromoCodes,
+  createPromoCode,
+  getAuditLogs,
+  getAiContent,
+  getPayments,
+};
+
 
 module.exports = {
   getDashboardData,
