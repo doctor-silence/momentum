@@ -35,11 +35,11 @@ const checkAndExpireSubscriptions = async () => {
 };
 
 const initSubscriptionJobs = () => {
-  cron.schedule('*/10 * * * *', checkAndExpireSubscriptions, {
+  cron.schedule('* * * * *', checkAndExpireSubscriptions, {
     scheduled: true,
     timezone: "Europe/Moscow" // Adjust timezone as needed
   });
-  console.log('Subscription expiry job scheduled to run every 10 minutes (Europe/Moscow).');
+  console.log('Subscription expiry job scheduled to run every minute (Europe/Moscow).');
 
   checkAndExpireSubscriptions();
 };
