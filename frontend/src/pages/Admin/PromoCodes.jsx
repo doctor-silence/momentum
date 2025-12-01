@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useToast } from "@/components/ui/use-toast";
 import { getPromoCodes, createPromoCode } from '../../api/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const PromoCodes = () => {
   const [promoCodes, setPromoCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast } = useToast();
 
   const form = useForm({
     resolver: zodResolver(promoCodeSchema),
@@ -52,12 +54,26 @@ const PromoCodes = () => {
   }, [fetchPromoCodes]);
   
   const onSubmit = async (values) => {
+    const payload = { ...values };
+    if (payload.expiresAt === '') {
+      payload.expiresAt = null;
+    }
+    
     try {
-      await createPromoCode(values);
+      await createPromoCode(payload);
+      toast({
+        title: "Успех!",
+        description: "Промокод успешно создан.",
+      });
       fetchPromoCodes(); // Refetch after creation
       form.reset();
     } catch (error) {
       console.error('Failed to create promo code', error);
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: `Не удалось создать промокод: ${error.response?.data?.error || error.message}`,
+      });
     }
   };
 
