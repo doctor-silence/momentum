@@ -223,13 +223,6 @@ const getAiContent = asyncHandler(async (req, res) => {
   }
 });
 
-const asyncHandler = require('express-async-handler');
-const { User, Product, ActionLog, PromoCode, AuditLog } = require('../models');
-const { Op, fn, col, literal } = require('sequelize');
-const yooKassa = require('../config/yookassa');
-
-// ... (previous functions remain unchanged)
-
 const getPayments = asyncHandler(async (req, res) => {
   try {
     const { limit = 10, cursor } = req.query;
@@ -243,19 +236,6 @@ const getPayments = asyncHandler(async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-module.exports = {
-  getDashboardData,
-  getUsers,
-  getUserById,
-  updateUser,
-  getPromoCodes,
-  createPromoCode,
-  getAuditLogs,
-  getAiContent,
-  getPayments,
-};
-
 
 module.exports = {
   getDashboardData,
