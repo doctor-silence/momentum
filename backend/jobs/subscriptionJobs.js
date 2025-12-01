@@ -1,10 +1,14 @@
 const cron = require('node-cron');
 const { User } = require('../models');
-const { Op } = require('sequelize'); // Standard import
+const { Op } = require('sequelize');
 
 const checkAndExpireSubscriptions = async () => {
   console.log('Running subscription expiry check...');
   try {
+    // This seemingly redundant query appears to resolve a timing issue.
+    // It was discovered when verbose logging was added and the bug disappeared.
+    await User.findAll({ where: { subscription_status: 'active' }, limit: 1 });
+
     const now = new Date();
     const expiredUsers = await User.findAll({
       where: {
@@ -31,11 +35,11 @@ const checkAndExpireSubscriptions = async () => {
 };
 
 const initSubscriptionJobs = () => {
-  cron.schedule('0 0 * * *', checkAndExpireSubscriptions, {
+  cron.schedule('*/10 * * * *', checkAndExpireSubscriptions, {
     scheduled: true,
-    timezone: "Europe/Moscow"
+    timezone: "Europe/Moscow" // Adjust timezone as needed
   });
-  console.log('Subscription expiry job scheduled to run daily at midnight (Europe/Moscow).');
+  console.log('Subscription expiry job scheduled to run every 10 minutes (Europe/Moscow).');
 
   checkAndExpireSubscriptions();
 };
