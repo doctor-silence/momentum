@@ -121,25 +121,29 @@ export default function Generate() {
     setIsLoading(true);
     setGeneratedContent(null);
     try {
+      // Re-fetch user profile for the most up-to-date status
+      const freshUserProfile = await getUserMeApi();
+      setUserProfile(freshUserProfile); // Update state for the whole component
+
       // Check for expired subscription first
-      if (userProfile.subscription_status === 'expired') {
+      if (freshUserProfile.subscription_status === 'expired') {
         setIsSubscriptionExpiredModalOpen(true);
         setIsLoading(false);
         return;
       }
 
       // Then check for depleted free generations / inactive subscription
-      if (userProfile.subscription_status !== 'active' && !userProfile.has_unlimited_generations && userProfile.freeGenerationsLeft <= 0) {
+      if (freshUserProfile.subscription_status !== 'active' && !freshUserProfile.has_unlimited_generations && freshUserProfile.freeGenerationsLeft <= 0) {
         setIsSubscriptionModalOpen(true);
         setIsLoading(false);
         return;
       }
 
-      const finalPrompt = prompt || customPrompt || `Создай контент о ${userProfile?.core_message}`;
+      const finalPrompt = prompt || customPrompt || `Создай контент о ${freshUserProfile?.core_message}`;
 
       const fullPromptContext = `
       START_USER_PROFILE
-      ${JSON.stringify(userProfile, null, 2)}
+      ${JSON.stringify(freshUserProfile, null, 2)}
       END_USER_PROFILE
 
       START_GENERATION_TASK
