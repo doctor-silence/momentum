@@ -64,11 +64,11 @@ export default function Register() {
   
   const handleGoogleSignIn = () => {
     // Redirect the browser to the backend's Google auth route
-    window.location.href = 'http://localhost:5001/api/auth/google';
+    window.location.href = '/api/auth/google'; // Use relative path
   };
 
   const handleVkSignIn = () => {
-    window.location.href = 'http://localhost:5001/api/auth/vk';
+    window.location.href = '/api/auth/vk'; // Use relative path
   };
 
   return (
@@ -174,3 +174,4 @@ export default function Register() {
     </div>
   );
 }
+
