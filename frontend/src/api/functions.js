@@ -1,5 +1,15 @@
 import apiClient from './apiClient';
 
+export const getProducts = async () => {
+  try {
+    const response = await apiClient.get('/products');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};
+
 export const createCheckoutSession = async (options) => {
   try {
     const response = await apiClient.post('/payments/create', options);

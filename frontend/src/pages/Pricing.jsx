@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { User } from "@/api/entities";
-import { UserProfile } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input"; // Added Input import
-import { Check, Crown, Shield, Zap, ArrowRight } from "lucide-react";
-import { createCheckoutSession } from "@/api/functions";
-import { createBillingPortalSession } from "@/api/functions"; // Added import
-import { applyPromoCodeApi } from "@/api/promocodes"; // Import applyPromoCodeApi
+import { Input } from "@/components/ui/input";
+import { Check, Crown, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { createCheckoutSession, getProducts } from "@/api/functions";
+import { applyPromoCodeApi } from "@/api/promocodes";
 
 const FEATURES = [
   "Доступ к AI-студии контента",
@@ -20,86 +18,91 @@ const FEATURES = [
 
 export default function Pricing() {
   const [profile, setProfile] = useState(null);
+  const [starterProduct, setStarterProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [promoCode, setPromoCode] = useState(""); // State for promo code input
-  const [originalPrice, setOriginalPrice] = useState(4700); // Initial price
-  const [discountedPrice, setDiscountedPrice] = useState(null); // State for discounted price
+  const [promoCode, setPromoCode] = useState("");
+  const [discountedPrice, setDiscountedPrice] = useState(null);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const userPromise = User.me();
+        const productsPromise = getProducts();
+        
+        const [user, products] = await Promise.all([userPromise, productsPromise]);
+
+        setProfile(user);
+
+        const starter = products.find(p => p.name === 'Starter');
+        if (starter) {
+          setStarterProduct(starter);
+        } else {
+          throw new Error("Тариф 'Starter' не найден.");
+        }
+      } catch (err) {
+        console.error("Failed to load pricing data:", err);
+        setError("Не удалось загрузить информацию о тарифах. Попробуйте обновить страницу.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
 
-  const loadData = async () => {
-    const user = await User.me();
-    // Assuming the user object from User.me() has the subscription info
-    setProfile(user);
-    setLoading(false);
-  };
+  const originalPrice = useMemo(() => starterProduct?.price, [starterProduct]);
 
-  const isActiveStarter = profile?.subscription_status === 'active';
+  const isActiveStarter = profile?.productId === starterProduct?.id && profile?.subscription_status === 'active';
 
   const handleCheckout = async () => {
+    if (!starterProduct) return;
     setSubmitting(true);
     try {
       const priceToUse = discountedPrice !== null ? discountedPrice : originalPrice;
-      // Pass productId and a specific description to the checkout session
       const payment = await createCheckoutSession({ 
         price: priceToUse.toFixed(2), 
         currency: "RUB",
-        productId: 1, // Assuming "Starter" plan has ID 1
-        description: "Подписка на тариф Starter" 
+        productId: starterProduct.id,
+        description: `Подписка на тариф ${starterProduct.name}`
       });
       if (payment?.confirmation?.confirmation_url) {
         window.location.href = payment.confirmation.confirmation_url;
       } else {
         setSubmitting(false);
-        alert("Could not start checkout. Please try again.");
+        alert("Не удалось начать оплату. Пожалуйста, попробуйте снова.");
       }
     } catch (error) {
         setSubmitting(false);
-        alert("Could not start checkout. Please try again.");
+        alert("Не удалось начать оплату. Пожалуйста, попробуйте снова.");
     }
   };
 
-  // Added handleManageBilling function
-  const handleManageBilling = async () => {
-    // This would need to be implemented separately
-    alert("Billing management is not available yet.");
-  };
-
   const applyPromoCode = async () => {
+    if (!originalPrice) return;
     setSubmitting(true);
-    console.log("Attempting to apply promo code:", promoCode, "with original price:", originalPrice); // Added console.log
     try {
       const response = await applyPromoCodeApi(promoCode, originalPrice);
-      console.log("Promo code API response:", response); // Added console.log
       if (response.success) {
         setDiscountedPrice(response.data.discountedPrice);
-        console.log("Discounted price set to:", response.data.discountedPrice); // Added console.log
       } else {
         setDiscountedPrice(null);
-        console.log("Promo code application failed:", response.message); // Added console.log
+        alert(response.message || "Неверный промокод.");
       }
     } catch (error) {
       console.error("Error applying promo code:", error);
       setDiscountedPrice(null);
+      alert("Ошибка при применении промокода.");
     } finally {
       setSubmitting(false);
-      console.log("Submitting state set to false."); // Added console.log
     }
   };
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Info banner for new users without a profile */}
-        {!loading && !profile && (
-          <div className="p-4 rounded-xl bg-blue-500/20 border border-blue-400/30 text-white/90">
-            Новичок? Вы можете подписаться сейчас и заполнить профиль после оплаты.
-          </div>
-        )}
-
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-200">
             <Crown className="w-4 h-4" />
@@ -111,85 +114,92 @@ export default function Pricing() {
           </p>
         </div>
 
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
-                <Zap className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-white">Стартовый</CardTitle>
-                <div className="text-white/60 text-sm">Всё необходимое для создания, планирования и анализа</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-white">
-                {discountedPrice !== null ? discountedPrice : originalPrice}₽
-                <span className="text-lg text-white/70">/мес</span>
-              </div>
-              {isActiveStarter ? (
-                <Badge className="mt-2 bg-emerald-500/30 text-emerald-200 border-emerald-400/30">Активен</Badge>
-              ) : (
-                <Badge className="mt-2 bg-amber-500/30 text-amber-200 border-amber-400/30">Лучшее предложение</Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              {FEATURES.map((f) => (
-                <div key={f} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/30 flex items-center justify-center border border-emerald-400/30">
-                    <Check className="w-3.5 h-3.5 text-emerald-200" />
-                  </div>
-                  <span className="text-white/90">{f}</span>
-                </div>
-              ))}
-            </div>
+        {error && <div className="p-4 rounded-xl bg-red-500/20 border border-red-400/30 text-red-200 text-center">{error}</div>}
 
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-white/5 border border-white/10 p-6">
-              {loading ? (
-                <div className="text-white/70">Загружаем ваш тариф...</div>
-              ) : isActiveStarter ? (
-                <>
-                  <div className="text-lg text-white">Вы на тарифе Starter</div>
-                   <div className="text-sm text-white/60">Ваша подписка активна.</div>
-                </>
-              ) : (
-                <>
-                  <div className="flex w-full items-center space-x-2">
-                    <Input
-                      type="text"
-                      placeholder="Промокод"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-grow bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                    <Button
-                      onClick={applyPromoCode}
-                      disabled={submitting}
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4"
-                    >
-                      Применить
-                    </Button>
-                  </div>
-                  <div className="text-white/80 text-center">Начните подписку сейчас</div>
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={submitting}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-8"
-                  >
-                    {submitting ? "Переход..." : (
-                      <>
-                        Получить Starter
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                  
-                </>
-              )}
+        <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+          {loading ? (
+            <div className="flex items-center justify-center h-96">
+              <Loader2 className="w-8 h-8 text-white/70 animate-spin" />
             </div>
-          </CardContent>
+          ) : starterProduct && (
+            <>
+              <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+                    <Zap className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-white">{starterProduct.name}</CardTitle>
+                    <div className="text-white/60 text-sm">{starterProduct.description}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-white">
+                    {discountedPrice !== null ? discountedPrice : originalPrice}₽
+                    <span className="text-lg text-white/70">/мес</span>
+                  </div>
+                  {isActiveStarter ? (
+                    <Badge className="mt-2 bg-emerald-500/30 text-emerald-200 border-emerald-400/30">Активен</Badge>
+                  ) : (
+                    <Badge className="mt-2 bg-amber-500/30 text-amber-200 border-amber-400/30">Лучшее предложение</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  {FEATURES.map((f) => (
+                    <div key={f} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/30 flex items-center justify-center border border-emerald-400/30">
+                        <Check className="w-3.5 h-3.5 text-emerald-200" />
+                      </div>
+                      <span className="text-white/90">{f}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-white/5 border border-white/10 p-6">
+                  {isActiveStarter ? (
+                    <>
+                      <div className="text-lg text-white">Вы на тарифе Starter</div>
+                       <div className="text-sm text-white/60">Ваша подписка активна.</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex w-full items-center space-x-2">
+                        <Input
+                          type="text"
+                          placeholder="Промокод"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value)}
+                          className="flex-grow bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        />
+                        <Button
+                          onClick={applyPromoCode}
+                          disabled={submitting}
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4"
+                        >
+                          Применить
+                        </Button>
+                      </div>
+                      <div className="text-white/80 text-center">Начните подписку сейчас</div>
+                      <Button
+                        onClick={handleCheckout}
+                        disabled={submitting}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-8"
+                      >
+                        {submitting ? "Переход..." : (
+                          <>
+                            Получить Starter
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </>
+          )}
         </Card>
       </div>
     </div>
