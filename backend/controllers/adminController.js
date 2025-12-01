@@ -142,14 +142,6 @@ const updateUser = asyncHandler(async (req, res) => {
 
 const getPromoCodes = asyncHandler(async (req, res) => {
   const promoCodes = await PromoCode.findAll({
-    attributes: {
-      include: [[fn('COUNT', col('Users.id')), 'usageCount']]
-    },
-    include: [{
-      model: User,
-      attributes: []
-    }],
-    group: ['PromoCode.id'],
     order: [['createdAt', 'DESC']],
   });
   res.json(promoCodes);
