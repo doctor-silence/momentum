@@ -240,13 +240,7 @@ const getPayments = asyncHandler(async (req, res) => {
     res.json(payments);
   } catch (error) {
     console.error('Error fetching payments from YooKassa:', error);
-    // Send a more detailed error response to the frontend
-    const statusCode = error.response?.status || 500;
-    const errorData = error.response?.data || { message: 'An unexpected error occurred' };
-    res.status(statusCode).json({ 
-      message: `Failed to fetch payments from YooKassa: ${errorData.description || errorData.message}`,
-      details: errorData 
-    });
+    res.status(500).send('Server error');
   }
 });
 
