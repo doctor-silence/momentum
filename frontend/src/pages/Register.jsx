@@ -221,7 +221,9 @@ export default function Register() {
         onOpenChange={setIsPolicyModalOpen}
         title={modalContent.title}
       >
-        <ReactMarkdown className="prose prose-invert max-w-none">{modalContent.content}</ReactMarkdown>
+        <div className="prose prose-invert max-w-none">
+          <ReactMarkdown>{modalContent.content}</ReactMarkdown>
+        </div>
       </PolicyModal>
     </>
   );

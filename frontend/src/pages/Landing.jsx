@@ -5,6 +5,7 @@ import FeatureGrid from "@/components/landing/FeatureGrid";
 import HowItWorks from "@/components/landing/HowItWorks";
 import CTA from "@/components/landing/CTA";
 import PricingModal from "@/components/landing/PricingModal";
+import Footer from "@/components/landing/Footer";
 
 export default function Landing() {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
@@ -41,6 +42,7 @@ export default function Landing() {
       <HowItWorks />
       <CTA onOpenPricingModal={() => setIsPricingModalOpen(true)} />
       <PricingModal isOpen={isPricingModalOpen} onClose={() => setIsPricingModalOpen(false)} />
+      <Footer />
     </div>
   );
 }
