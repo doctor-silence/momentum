@@ -83,11 +83,11 @@ export default function Layout({ children, currentPageName }) {
         
         <header className="relative z-20 px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-xl" role="banner">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+            <Link to="/" className="flex items-center gap-3 font-heading font-bold text-xl tracking-tighter text-white cursor-pointer group">
+              <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center group-hover:rotate-180 transition-transform duration-500 shadow-[0_0_20px_rgba(255,255,255,0.6)]">
+                <Zap className="w-6 h-6 fill-current" />
               </div>
-              <span className="text-white font-semibold">Momentum Amplify</span>
+              <span className="font-semibold">MOMENTUM</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link to="/#how" className="text-white/80 hover:text-white text-sm">Как это работает</Link>

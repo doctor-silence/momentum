@@ -66,7 +66,7 @@ export default function LeadMagnet() {
           </p>
           <form className="mt-8 max-w-lg mx-auto">
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-3 rounded-lg">
+              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-7 py-3 rounded-lg shadow-[0_0_20px_rgba(255,255,255,0.6)]">
                 ПОЛУЧИТЬ ПРОМОКОД
               </button>
             </div>
@@ -139,7 +139,7 @@ export default function LeadMagnet() {
           </p>
           <form className="mt-8 max-w-lg mx-auto">
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-8 py-4 rounded-lg text-lg">
+              <button type="button" onClick={handleGetPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-8 py-4 rounded-lg text-lg shadow-[0_0_20px_rgba(255,255,255,0.6)]">
                 ПОЛУЧИТЬ ПРОМОКОД НА СКИДКУ 30%
               </button>
             </div>
