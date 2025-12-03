@@ -76,7 +76,13 @@ The JSON object you return must match this schema: { "type": "object", "properti
       await user.save();
     }
 
-    const generatedJson = JSON.parse(response.data.choices[0].message.content);
+    let generatedJson;
+    try {
+      generatedJson = JSON.parse(response.data.choices[0].message.content);
+    } catch (parseError) {
+      console.error('Failed to parse JSON from DeepSeek API:', response.data.choices[0].message.content);
+      return res.status(500).json({ message: 'AI service returned an invalid format. Please try regenerating.' });
+    }
     
     ActionLog.create({
       userId: createdBy,
@@ -143,7 +149,13 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
       }
     );
     
-    const generatedJson = JSON.parse(response.data.choices[0].message.content);
+    let generatedJson;
+    try {
+      generatedJson = JSON.parse(response.data.choices[0].message.content);
+    } catch (parseError) {
+      console.error('Failed to parse JSON from DeepSeek API for ideas:', response.data.choices[0].message.content);
+      return res.status(500).json({ message: 'AI service returned an invalid format for ideas. Please try regenerating.' });
+    }
     res.json(generatedJson);
 
   } catch (error) {
