@@ -60,14 +60,14 @@ The JSON object you return must match this schema: { "type": "object", "properti
           }
         ],
         max_tokens: 2048,
-        temperature: 0.7,
         response_format: { type: 'json_object' }
       },
       {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
-        }
+        },
+        timeout: 120000 // 120-second timeout
       }
     );
 
@@ -138,7 +138,8 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
-        }
+        },
+        timeout: 120000 // 120-second timeout
       }
     );
     
@@ -190,7 +191,8 @@ const chatWithAgent = asyncHandler(async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
-        }
+        },
+        timeout: 120000 // 120-second timeout
       }
     );
 
