@@ -159,9 +159,12 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
     res.json(generatedJson);
 
   } catch (error) {
-    console.error('Error calling DeepSeek API for ideas:', error.response ? error.response.data : error.message);
-    res.status(error.response ? error.response.status : 500);
-    throw new Error('Failed to generate content ideas from AI service.');
+    const errorMessage = error.response ? error.response.data : error.message;
+    console.error('Error calling DeepSeek API for ideas:', errorMessage);
+    return res.status(error.response ? error.response.status : 500).json({
+        message: 'Failed to generate content ideas from AI service.',
+        error: errorMessage
+    });
   }
 });
 
