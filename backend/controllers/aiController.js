@@ -159,6 +159,13 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
     res.json(generatedJson);
 
   } catch (error) {
+    // Check if the request was aborted
+    if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('aborted'))) {
+      console.log('Request to DeepSeek API for ideas was aborted, likely by the client closing the connection.');
+      // No response is sent because the client has already disconnected.
+      return;
+    }
+
     const errorMessage = error.response ? error.response.data : error.message;
     console.error('Error calling DeepSeek API for ideas:', errorMessage);
     return res.status(error.response ? error.response.status : 500).json({
