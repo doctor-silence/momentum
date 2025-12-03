@@ -141,7 +141,7 @@ export default function Generate() {
 
       const finalPrompt = prompt || customPrompt || `Создай контент о ${freshUserProfile?.core_message}`;
 
-      const fullPromptContext = `
+      let fullPromptContext = `
       START_USER_PROFILE
       ${JSON.stringify(freshUserProfile, null, 2)}
       END_USER_PROFILE
@@ -156,6 +156,10 @@ export default function Generate() {
       ${finalPrompt}
       END_GENERATION_TASK
       `;
+
+      if (selectedPlatform === 'twitter') {
+        fullPromptContext += `\n\nКРИТИЧЕСКИ ВАЖНО: Так как это для Twitter, основной текст (body) должен быть очень коротким, в пределах 280 символов.`;
+      }
 
       const result = await generateAiContent(fullPromptContext);
       setGeneratedContent({ ...result, generation_prompt: finalPrompt });
