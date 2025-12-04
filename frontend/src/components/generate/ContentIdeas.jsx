@@ -6,15 +6,12 @@ import { RefreshCw, Lightbulb, Sparkles, Loader2 } from "lucide-react";
 
 export default function ContentIdeas({ ideas = [], isLoading, onSelectIdea, onRefresh }) {
   const handleUse = (idea) => {
-    const prompt = `Create a ${idea.content_type} for ${idea.target_platform}.
+    const prompt = `Напиши полноценный пост для соцсетей на основе следующей идеи:
 
-Topic: ${idea.topic}
-Unique angle: ${idea.angle}
-Hook: ${idea.hook}
-Key points: ${(idea.key_points || []).join("; ")}
-CTA: ${idea.call_to_action}
+Тема: ${idea.topic}
+Ключевая мысль: ${idea.angle}
 
-Tone: engaging, expert, actionable.`;
+Сгенерируй детальный текст, подходящий для публикации, включая заголовок, тело поста и хэштеги.`;
     onSelectIdea(prompt);
   };
 
