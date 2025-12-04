@@ -94,6 +94,7 @@ export default function Generate() {
       Для каждой идеи предоставь НА РУССКОМ только:
       - "topic" (короткий, броский заголовок)
       - "angle" (описание идеи в одном предложении)
+      - "trending_factor" (число от 0 до 100, показывающее, насколько идея в тренде)
 
       Это всё. Не нужно никаких других полей.`;
       const result = await generateIdeasFromAI(ideasPrompt);

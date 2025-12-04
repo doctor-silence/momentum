@@ -129,7 +129,7 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert content strategist. Your task is to generate a list of content ideas. Respond with a valid JSON object with a single key "ideas". This key should contain an array of 5 content idea objects. Each object must have only two keys: "topic" (a short, catchy title) and "angle" (a one-sentence description of the idea).`
+            content: `You are an expert content strategist. Your task is to generate a list of content ideas. Respond with a valid JSON object with a single key "ideas". This key should contain an array of 5 content idea objects. Each object must have only three keys: "topic" (a short, catchy title), "angle" (a one-sentence description of the idea), and "trending_factor" (a number from 0 to 100).`
           },
           {
             role: 'user',
