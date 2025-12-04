@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import StatsGrid from "@/components/dashboard/StatsGrid";
 import RecentContent from "@/components/dashboard/RecentContent";
@@ -63,44 +64,69 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-4 lg:p-8 space-y-8">
-      <WelcomeCard />
-      <StatsGrid stats={stats} isLoading={isLoading} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <QuickActions />
-        </div>
-        <div className="lg:col-span-2">
-          <RecentContent content={content} isLoading={isLoading} />
-        </div>
-      </div>
-
-      {/* Promo Code Modal */}
-      <Dialog open={isPromoModalOpen} onOpenChange={setIsPromoModalOpen}>
-        <DialogContent className="bg-slate-900 border-white/20 text-white"> {/* Added custom classes */}
-          <DialogHeader>
-            <DialogTitle className="text-white">Поздравляем с регистрацией!</DialogTitle> {/* Adjusted text color */}
-            <DialogDescription className="text-white/70"> {/* Adjusted text color */}
-              Мы рады приветствовать вас! Вот ваш эксклюзивный промокод.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="text-center text-3xl font-bold text-amber-400 py-4"> {/* Adjusted text color */}
-            {promoCodeData?.code}
+    <>
+      <Helmet>
+        <title>Dashboard - Momentum Amplify</title>
+        {/* Top.Mail.Ru counter */}
+        <script type="text/javascript">
+          {`
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "3724112", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+              if (d.getElementById(id)) return;
+              var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+              ts.src = "https://top-fwz1.mail.ru/js/code.js";
+              var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+              if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+            })(document, window, "tmr-code");
+          `}
+        </script>
+        <noscript>
+          {`
+            <div><img src="https://top-fwz1.mail.ru/counter?id=3724112;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div>
+          `}
+        </noscript>
+        {/* /Top.Mail.Ru counter */}
+      </Helmet>
+      <div className="p-4 lg:p-8 space-y-8">
+        <WelcomeCard />
+        <StatsGrid stats={stats} isLoading={isLoading} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
+            <QuickActions />
           </div>
-          <p className="text-center text-sm text-white/70"> {/* Adjusted text color */}
-            Скидка: {promoCodeData?.discountValue}% ({promoCodeData?.discountType === 'percentage' ? 'процентная' : 'фиксированная'})
-            {promoCodeData?.expiresAt && ` до ${new Date(promoCodeData.expiresAt).toLocaleDateString()}`}
-          </p>
-          <DialogFooter>
-            <Button onClick={handleCopyPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"> {/* Styled button */}
-              Копировать
-            </Button>
-            <Button className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => setIsPromoModalOpen(false)}> {/* Removed variant="outline" and applied direct styles */}
-              Закрыть
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="lg:col-span-2">
+            <RecentContent content={content} isLoading={isLoading} />
+          </div>
+        </div>
+
+        {/* Promo Code Modal */}
+        <Dialog open={isPromoModalOpen} onOpenChange={setIsPromoModalOpen}>
+          <DialogContent className="bg-slate-900 border-white/20 text-white"> {/* Added custom classes */}
+            <DialogHeader>
+              <DialogTitle className="text-white">Поздравляем с регистрацией!</DialogTitle> {/* Adjusted text color */}
+              <DialogDescription className="text-white/70"> {/* Adjusted text color */}
+                Мы рады приветствовать вас! Вот ваш эксклюзивный промокод.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="text-center text-3xl font-bold text-amber-400 py-4"> {/* Adjusted text color */}
+              {promoCodeData?.code}
+            </div>
+            <p className="text-center text-sm text-white/70"> {/* Adjusted text color */}
+              Скидка: {promoCodeData?.discountValue}% ({promoCodeData?.discountType === 'percentage' ? 'процентная' : 'фиксированная'})
+              {promoCodeData?.expiresAt && ` до ${new Date(promoCodeData.expiresAt).toLocaleDateString()}`}
+            </p>
+            <DialogFooter>
+              <Button onClick={handleCopyPromoCode} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white"> {/* Styled button */}
+                Копировать
+              </Button>
+              <Button className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => setIsPromoModalOpen(false)}> {/* Removed variant="outline" and applied direct styles */}
+                Закрыть
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
   );
 }
