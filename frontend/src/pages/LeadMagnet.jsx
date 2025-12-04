@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from 'react-helmet-async';
 
 export default function LeadMagnet() {
   const navigate = useNavigate();
@@ -42,6 +43,29 @@ export default function LeadMagnet() {
 
   return (
     <>
+      <Helmet>
+        <title>Скидка 30% на AI Контент - Momentum Amplify</title>
+        {/* Top.Mail.Ru counter */}
+        <script type="text/javascript">
+          {`
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "3724112", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+              if (d.getElementById(id)) return;
+              var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+              ts.src = "https://top-fwz1.mail.ru/js/code.js";
+              var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+              if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+            })(document, window, "tmr-code");
+          `}
+        </script>
+        <noscript>
+          {`
+            <div><img src="https://top-fwz1.mail.ru/counter?id=3724112;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div>
+          `}
+        </noscript>
+        {/* /Top.Mail.Ru counter */}
+      </Helmet>
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
         <div className="relative max-w-4xl mx-auto px-6 text-center">
