@@ -129,7 +129,7 @@ const generateContentIdeas = asyncHandler(async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert content strategist who generates viral content ideas. You ALWAYS respond with a valid JSON object and nothing else. The JSON object must contain a single key "ideas", which is an array of objects. Each object in the array must have the following properties: "topic", "angle", "hook", "key_points" (an array of strings), "call_to_action", "estimated_performance" (string: "low", "medium", or "high"), and "trending_factor" (a number from 0 to 100).`
+            content: `You are an expert content strategist. Generate viral content ideas based on the user's request. Respond with a valid JSON object with a key "ideas" containing an array of the generated ideas.`
           },
           {
             role: 'user',
