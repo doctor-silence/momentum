@@ -13,6 +13,7 @@ import PolicyModal from '@/components/common/PolicyModal';
 import { privacyPolicyTitle, privacyPolicyContent } from "@/lib/privacy-policy";
 import { termsOfServiceTitle, termsOfServiceContent } from "@/lib/terms-of-service";
 import ReactMarkdown from 'react-markdown';
+import { Helmet } from 'react-helmet-async';
 
 
 const formSchema = z.object({
@@ -86,6 +87,29 @@ export default function Register() {
 
   return (
     <>
+      <Helmet>
+        <title>Регистрация - Momentum Amplify</title>
+        {/* Top.Mail.Ru counter */}
+        <script type="text/javascript">
+          {`
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "3724112", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+              if (d.getElementById(id)) return;
+              var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+              ts.src = "https://top-fwz1.mail.ru/js/code.js";
+              var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+              if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+            })(document, window, "tmr-code");
+          `}
+        </script>
+        <noscript>
+          {`
+            <div><img src="https://top-fwz1.mail.ru/counter?id=3724112;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div>
+          `}
+        </noscript>
+        {/* /Top.Mail.Ru counter */}
+      </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
         <Card className="w-full max-w-md bg-white/10 backdrop-blur-xl border-white/20 text-white">
           <CardHeader className="text-center">
