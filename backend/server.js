@@ -24,6 +24,7 @@ require('./config/passport')(passport);
 
 // Initialize Express app
 const app = express();
+app.set('trust proxy', 1); // Trust the first proxy
 
 const createAdminUser = async () => {
   const adminEmail = 'admin@example.com';
