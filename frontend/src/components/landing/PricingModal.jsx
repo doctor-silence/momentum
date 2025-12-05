@@ -49,7 +49,7 @@ export default function PricingModal({ isOpen, onClose }) {
   const handleCheckout = async () => {
     setSubmitting(true);
     try {
-      const payment = await createCheckoutSession({ price: "4700.00", currency: "RUB" });
+      const payment = await createCheckoutSession({ price: "1999.00", currency: "RUB" });
       if (payment?.confirmation?.confirmation_url) {
         window.location.href = payment.confirmation.confirmation_url;
       } else {
@@ -84,7 +84,7 @@ export default function PricingModal({ isOpen, onClose }) {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-white">4700₽<span className="text-lg text-white/70">/мес</span></div>
+              <div className="text-3xl font-bold text-white">1999₽<span className="text-lg text-white/70">/мес</span></div>
               {isActiveStarter ? (
                 <Badge className="mt-2 bg-emerald-500/30 text-emerald-200 border-emerald-400/30">Активен</Badge>
               ) : (
@@ -137,3 +137,4 @@ export default function PricingModal({ isOpen, onClose }) {
     </Dialog>
   );
 }
+
