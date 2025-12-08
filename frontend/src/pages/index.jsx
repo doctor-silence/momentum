@@ -19,6 +19,7 @@ import Login from "./Login.jsx";
 import Register from "./Register.jsx";
 import AuthCallback from "./AuthCallback.jsx";
 import LeadMagnet from "./LeadMagnet.jsx";
+import Welcome from "./Welcome.jsx"; // Import the new Welcome page
 import ProtectedRouteAdmin from '../components/common/ProtectedRouteAdmin.jsx';
 
 // Admin pages (lazy-loaded)
@@ -86,7 +87,7 @@ ProtectedRoute.propTypes = {
 
 // --- Page Name Logic ---
 const PAGES = {
-    Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback, LeadMagnet
+    Dashboard, Generate, Profile, Pricing, PaymentSuccess, Calendar, Library, Analytics, Landing, Agents, Login, Register, AuthCallback, LeadMagnet, Welcome
 };
 
 function _getCurrentPage(url) {
@@ -96,6 +97,7 @@ function _getCurrentPage(url) {
     if (url.toLowerCase() === '/register') return 'Register';
     if (url.toLowerCase().startsWith('/auth')) return 'AuthCallback';
     if (url.toLowerCase() === '/lead-magnet') return 'LeadMagnet';
+    if (url.toLowerCase() === '/welcome-to-momentum') return 'Welcome';
     
     if (url.endsWith('/')) url = url.slice(0, -1);
     let urlLastPart = url.split('/').pop().split('?')[0].replace(/-/g, '');
@@ -116,6 +118,7 @@ function AppRoutes() {
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/welcome-to-momentum" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
@@ -154,7 +157,7 @@ function AppWithLayout() {
     const location = useLocation();
     const currentPageName = _getCurrentPage(location.pathname);
 
-    if (currentPageName === 'Admin') {
+    if (currentPageName === 'Admin' || currentPageName === 'Welcome') {
         return <AppRoutes />;
     }
 

@@ -1,0 +1,43 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { CheckCircle, ArrowRight } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+
+export default function Welcome() {
+  const navigate = useNavigate();
+
+  const handleProceed = () => {
+    navigate('/dashboard');
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Добро пожаловать - Momentum Amplify</title>
+      </Helmet>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-lg w-full text-center bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl p-8"
+        >
+          <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-white mb-2">Регистрация успешно завершена!</h1>
+          <p className="text-white/70 mb-6">
+            Добро пожаловать в Momentum! Вы готовы начать создавать контент, который усиливает ваше влияние.
+          </p>
+          <Button
+            onClick={handleProceed}
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            Перейти в Dashboard
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </motion.div>
+      </div>
+    </>
+  );
+}

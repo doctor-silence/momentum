@@ -68,7 +68,7 @@ export default function Register() {
 
       localStorage.setItem('authToken', data.token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-      navigate('/dashboard');
+      navigate('/welcome-to-momentum');
 
     } catch (error) {
       console.error("Registration failed:", error);
