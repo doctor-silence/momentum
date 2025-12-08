@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -218,6 +219,29 @@ export default function Generate() {
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
+      <Helmet>
+        <title>AI-студия контента - Momentum Amplify</title>
+        {/* Top.Mail.Ru counter */}
+        <script type="text/javascript">
+          {`
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "3724112", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+              if (d.getElementById(id)) return;
+              var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+              ts.src = "https://top-fwz1.mail.ru/js/code.js";
+              var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+              if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+            })(document, window, "tmr-code");
+          `}
+        </script>
+        <noscript>
+          {`
+            <div><img src="https://top-fwz1.mail.ru/counter?id=3724112;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div>
+          `}
+        </noscript>
+        {/* /Top.Mail.Ru counter */}
+      </Helmet>
       <div className="max-w-7xl mx-auto space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">

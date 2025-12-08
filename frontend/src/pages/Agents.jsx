@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +91,29 @@ const handleInsertAndSend = (text) => {
 
   return (
     <div className="min-h-screen p-4 lg:p-8">
+      <Helmet>
+        <title>AI Агенты - Momentum Amplify</title>
+        {/* Top.Mail.Ru counter */}
+        <script type="text/javascript">
+          {`
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "3724112", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+              if (d.getElementById(id)) return;
+              var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+              ts.src = "https://top-fwz1.mail.ru/js/code.js";
+              var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+              if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+            })(document, window, "tmr-code");
+          `}
+        </script>
+        <noscript>
+          {`
+            <div><img src="https://top-fwz1.mail.ru/counter?id=3724112;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div>
+          `}
+        </noscript>
+        {/* /Top.Mail.Ru counter */}
+      </Helmet>
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
