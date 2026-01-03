@@ -89,7 +89,7 @@ export default function Hero({ onOpenPricingModal }) {
 
         <div className="mt-8 flex items-center justify-center gap-3 text-white/70 text-sm">
           <Shield className="w-4 h-4" />
-          <span>Безопасный вход через Google • Отмена в любой момент</span>
+          <span>Безопасный вход через Google</span>
         </div>
       </div>
     </section>
