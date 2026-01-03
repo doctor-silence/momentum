@@ -45,47 +45,47 @@ module.exports = function(passport) {
     )
   );
 
-  passport.use(
-    new VkontakteStrategy(
-      {
-        clientID: process.env.VK_CLIENT_ID,
-        clientSecret: process.env.VK_CLIENT_SECRET,
-        callbackURL: process.env.VK_CALLBACK_URL || '/api/auth/vk/callback',
-        profileFields: ['email', 'first_name', 'last_name'],
-      },
-      async (accessToken, refreshToken, params, profile, done) => {
-        const newUser = {
-          vkId: profile.id,
-          email: params.email,
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
-        };
+  // passport.use(
+  //   new VkontakteStrategy(
+  //     {
+  //       clientID: process.env.VK_CLIENT_ID,
+  //       clientSecret: process.env.VK_CLIENT_SECRET,
+  //       callbackURL: process.env.VK_CALLBACK_URL || '/api/auth/vk/callback',
+  //       profileFields: ['email', 'first_name', 'last_name'],
+  //     },
+  //     async (accessToken, refreshToken, params, profile, done) => {
+  //       const newUser = {
+  //         vkId: profile.id,
+  //         email: params.email,
+  //         firstName: profile.name.givenName,
+  //         lastName: profile.name.familyName,
+  //       };
 
-        try {
-          let user = await User.findOne({ where: { vkId: profile.id } });
+  //       try {
+  //         let user = await User.findOne({ where: { vkId: profile.id } });
 
-          if (user) {
-            return done(null, user);
-          }
+  //         if (user) {
+  //           return done(null, user);
+  //         }
 
-          user = await User.findOne({ where: { email: params.email } });
+  //         user = await User.findOne({ where: { email: params.email } });
 
-          if (user) {
-            // Optionally link the VK account to the existing user account
-            user.vkId = profile.id;
-            await user.save();
-            return done(null, user);
-          }
+  //         if (user) {
+  //           // Optionally link the VK account to the existing user account
+  //           user.vkId = profile.id;
+  //           await user.save();
+  //           return done(null, user);
+  //         }
 
-          user = await User.create(newUser);
-          done(null, user);
-        } catch (err) {
-          console.error(err);
-          done(err, null);
-        }
-      }
-    )
-  );
+  //         user = await User.create(newUser);
+  //         done(null, user);
+  //       } catch (err) {
+  //         console.error(err);
+  //         done(err, null);
+  //       }
+  //     }
+  //   )
+  // );
 
   // These are not strictly needed for JWT stateless auth, but passport requires them.
   passport.serializeUser((user, done) => {

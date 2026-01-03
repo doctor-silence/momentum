@@ -6,7 +6,14 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: true
+    allowedHosts: true,
+    proxy: {
+      // Proxy API requests to the backend server
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
+    }
   },
   resolve: {
     alias: {
