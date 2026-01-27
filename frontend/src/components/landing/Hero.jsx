@@ -12,7 +12,7 @@ export default function Hero({ onOpenPricingModal }) {
   //   await UserEntity.loginWithRedirect(window.location.origin + createPageUrl("Dashboard"));
   // };
 
-  const text = "Превратите ваше сообщение в движение".split(" ");
+  const text = "Инновационный генератор контента — новые идеи и тексты в один клик!".split(" ");
 
   const container = {
     hidden: { opacity: 0 },
